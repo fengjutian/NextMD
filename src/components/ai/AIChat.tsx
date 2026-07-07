@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import ScrollToBottom, { useScrollToBottom, useAtBottom } from 'react-scroll-to-bottom';
 import { User, Sparkles, Copy, ChevronDown } from 'lucide-react';
 import type { AIMessage } from '../../stores/aiStore';
 import { cn } from '../../lib/utils';
@@ -12,16 +13,36 @@ interface AIChatProps {
 }
 
 export function AIChat({ messages, isGenerating, onInsert }: AIChatProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   const visibleMessages = messages.filter((m) => m.content);
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 editor-area">
+    <ScrollToBottom className="flex-1 overflow-y-auto px-3 py-3" initialScrollBehavior="auto">
+      <ScrollToBottomContent
+        visibleMessages={visibleMessages}
+        isGenerating={isGenerating}
+        messages={messages}
+        onInsert={onInsert}
+      />
+    </ScrollToBottom>
+  );
+}
+
+function ScrollToBottomContent({
+  visibleMessages,
+  isGenerating,
+  messages,
+  onInsert,
+}: {
+  visibleMessages: AIMessage[];
+  isGenerating: boolean;
+  messages: AIMessage[];
+  onInsert: (text: string) => void;
+}) {
+  const scrollToBottom = useScrollToBottom();
+  const atBottom = useAtBottom();
+
+  return (
+    <>
       {visibleMessages.length === 0 && (
         <div className="text-center py-10">
           <Sparkles size={24} className="mx-auto text-[var(--text-muted)] mb-2" />
@@ -45,8 +66,16 @@ export function AIChat({ messages, isGenerating, onInsert }: AIChatProps) {
         </div>
       )}
 
-      <div ref={bottomRef} />
-    </div>
+      {/* Scroll-to-bottom button when user scrolled up */}
+      {!atBottom && (
+        <button
+          onClick={scrollToBottom}
+          className="sticky bottom-0 mx-auto block rounded-full px-3 py-1 text-xs bg-[var(--accent)] text-white shadow-md hover:opacity-90 transition-opacity"
+        >
+          ↓ 滚动到底部
+        </button>
+      )}
+    </>
   );
 }
 
@@ -61,7 +90,7 @@ function ChatBubble({ message, onInsert }: { message: AIMessage; onInsert: () =>
   };
 
   return (
-    <div className={cn('flex gap-2', isUser && 'justify-end')}>
+    <div className={cn('flex gap-2 mb-4', isUser && 'justify-end')}>
       {!isUser && (
         <div className="w-7 h-7 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center shrink-0 mt-0.5">
           <Sparkles size={14} className="text-[var(--accent)]" />

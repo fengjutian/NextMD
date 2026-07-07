@@ -1,7 +1,9 @@
 import { FileText, FolderOpen, FilePlus } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { openFile } from '../../lib/fileOps';
+import { openFile, openFileByPath } from '../../lib/fileOps';
 
 export function WelcomeScreen() {
   const { recentFiles, setCurrentFile, addRecentFile } = useFileStore();
@@ -19,6 +21,17 @@ export function WelcomeScreen() {
     setCurrentFile({ name: result.name, path: result.path });
     setContent(result.content, false);
     addRecentFile(result.name, result.path);
+  };
+
+  const handleOpenRecentFile = async (filePath?: string) => {
+    const result = filePath ? await openFileByPath(filePath) : null;
+    if (result) {
+      setCurrentFile({ name: result.name, path: result.path });
+      setContent(result.content, false);
+      addRecentFile(result.name, result.path);
+      return;
+    }
+    handleOpenFile();
   };
 
   const templates = [
@@ -60,7 +73,7 @@ export function WelcomeScreen() {
               {recentFiles.slice(0, 5).map((f) => (
                 <button
                   key={f.name + f.lastOpened}
-                  onClick={() => handleOpenFile()}
+                  onClick={() => handleOpenRecentFile(f.path)}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors flex items-center gap-2"
                 >
                   <FileText size={14} className="text-[var(--text-muted)] shrink-0" />
@@ -96,12 +109,5 @@ export function WelcomeScreen() {
 }
 
 function timeAgo(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins || 1}分钟前`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}小时前`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}天前`;
-  return `${Math.floor(days / 7)}周前`;
+  return formatDistanceToNow(ts, { addSuffix: true, locale: zhCN });
 }

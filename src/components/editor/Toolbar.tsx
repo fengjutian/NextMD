@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import {
   Bold, Italic, Strikethrough, Code,
   Heading1, Heading2, Heading3,
@@ -10,26 +9,10 @@ import { useAIStore } from '../../stores/aiStore';
 import { cn } from '../../lib/utils';
 
 export function Toolbar() {
-  const { viewMode, setViewMode, content, setContent } = useEditorStore();
+  const { viewMode, setViewMode, insertMarkdown } = useEditorStore();
   const { isPanelOpen, togglePanel } = useAIStore();
 
-  const insertMarkdown = useCallback((prefix: string, suffix = '') => {
-    const textarea = document.querySelector('textarea');
-    if (textarea instanceof HTMLTextAreaElement && textarea === document.activeElement) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const selected = content.slice(start, end);
-      const newText = content.slice(0, start) + prefix + selected + suffix + content.slice(end);
-      setContent(newText);
-      requestAnimationFrame(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
-      });
-      return;
-    }
-    const insertion = prefix + suffix;
-    setContent(content ? content + '\n' + insertion : insertion);
-  }, [content, setContent]);
+  const insert = (prefix: string, suffix = '') => insertMarkdown?.(prefix, suffix);
 
   const ToolbarBtn = ({ icon, label, onClick: handleClick }: {
     icon: React.ReactNode; label: string; onClick: () => void;
@@ -49,31 +32,31 @@ export function Toolbar() {
 
   return (
     <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass overflow-x-auto">
-      <ToolbarBtn icon={<Bold size={16} />} label="粗体" onClick={() => insertMarkdown('**', '**')} />
-      <ToolbarBtn icon={<Italic size={16} />} label="斜体" onClick={() => insertMarkdown('*', '*')} />
-      <ToolbarBtn icon={<Strikethrough size={16} />} label="删除线" onClick={() => insertMarkdown('~~', '~~')} />
-      <ToolbarBtn icon={<Code size={16} />} label="行内代码" onClick={() => insertMarkdown('`', '`')} />
+      <ToolbarBtn icon={<Bold size={16} />} label="粗体" onClick={() => insert('**', '**')} />
+      <ToolbarBtn icon={<Italic size={16} />} label="斜体" onClick={() => insert('*', '*')} />
+      <ToolbarBtn icon={<Strikethrough size={16} />} label="删除线" onClick={() => insert('~~', '~~')} />
+      <ToolbarBtn icon={<Code size={16} />} label="行内代码" onClick={() => insert('`', '`')} />
 
       <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
 
-      <ToolbarBtn icon={<Heading1 size={16} />} label="一级标题" onClick={() => insertMarkdown('# ', '')} />
-      <ToolbarBtn icon={<Heading2 size={16} />} label="二级标题" onClick={() => insertMarkdown('## ', '')} />
-      <ToolbarBtn icon={<Heading3 size={16} />} label="三级标题" onClick={() => insertMarkdown('### ', '')} />
+      <ToolbarBtn icon={<Heading1 size={16} />} label="一级标题" onClick={() => insert('# ', '')} />
+      <ToolbarBtn icon={<Heading2 size={16} />} label="二级标题" onClick={() => insert('## ', '')} />
+      <ToolbarBtn icon={<Heading3 size={16} />} label="三级标题" onClick={() => insert('### ', '')} />
 
       <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
 
-      <ToolbarBtn icon={<List size={16} />} label="无序列表" onClick={() => insertMarkdown('- ', '')} />
-      <ToolbarBtn icon={<ListOrdered size={16} />} label="有序列表" onClick={() => insertMarkdown('1. ', '')} />
-      <ToolbarBtn icon={<ListTodo size={16} />} label="任务列表" onClick={() => insertMarkdown('- [ ] ', '')} />
-      <ToolbarBtn icon={<Quote size={16} />} label="引用" onClick={() => insertMarkdown('> ', '')} />
+      <ToolbarBtn icon={<List size={16} />} label="无序列表" onClick={() => insert('- ', '')} />
+      <ToolbarBtn icon={<ListOrdered size={16} />} label="有序列表" onClick={() => insert('1. ', '')} />
+      <ToolbarBtn icon={<ListTodo size={16} />} label="任务列表" onClick={() => insert('- [ ] ', '')} />
+      <ToolbarBtn icon={<Quote size={16} />} label="引用" onClick={() => insert('> ', '')} />
 
       <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
 
-      <ToolbarBtn icon={<Link size={16} />} label="链接" onClick={() => insertMarkdown('[链接文字](', ')')} />
-      <ToolbarBtn icon={<Image size={16} />} label="图片" onClick={() => insertMarkdown('![图片描述](', ')')} />
-      <ToolbarBtn icon={<Table size={16} />} label="表格" onClick={() => insertMarkdown('| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |', '')} />
-      <ToolbarBtn icon={<Code2 size={16} />} label="代码块" onClick={() => insertMarkdown('```\n', '\n```')} />
-      <ToolbarBtn icon={<Minus size={16} />} label="分隔线" onClick={() => insertMarkdown('---', '')} />
+      <ToolbarBtn icon={<Link size={16} />} label="链接" onClick={() => insert('[链接文字](', ')')} />
+      <ToolbarBtn icon={<Image size={16} />} label="图片" onClick={() => insert('![图片描述](', ')')} />
+      <ToolbarBtn icon={<Table size={16} />} label="表格" onClick={() => insert('| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |', '')} />
+      <ToolbarBtn icon={<Code2 size={16} />} label="代码块" onClick={() => insert('```\n', '\n```')} />
+      <ToolbarBtn icon={<Minus size={16} />} label="分隔线" onClick={() => insert('---', '')} />
 
       <div className="flex-1" />
 

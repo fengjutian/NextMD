@@ -1,7 +1,9 @@
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText } from 'ai';
 import type { IAIClient, AIMessage, ChatOptions, AIChunk } from '../types';
 
 /**
- * OpenAI / OpenAI-compatible API provider.
+ * OpenAI / OpenAI-compatible API provider using Vercel AI SDK.
  */
 export class OpenAIClient implements IAIClient {
   private apiKey: string;
@@ -16,72 +18,26 @@ export class OpenAIClient implements IAIClient {
   async *chat(messages: AIMessage[], options: ChatOptions = {}): AsyncIterable<AIChunk> {
     this.controller = new AbortController();
 
-    const body = JSON.stringify({
-      model: options.model || 'gpt-4o',
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
-      temperature: options.temperature ?? 0.7,
-      max_tokens: options.maxTokens,
-      stream: true,
-    });
-
     try {
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body,
-        signal: this.controller.signal,
+      const openai = createOpenAI({
+        baseURL: this.baseUrl,
+        apiKey: this.apiKey,
+        compatibility: 'compatible',
       });
 
-      if (!response.ok) {
-        const err = await response.text();
-        yield { type: 'error', message: `API 错误 (${response.status}): ${err}` };
-        return;
-      }
+      const result = streamText({
+        model: openai.chat(options.model || 'gpt-4o'),
+        messages: messages.map((m) => ({ role: m.role as 'system' | 'user' | 'assistant', content: m.content })),
+        temperature: options.temperature ?? 0.7,
+        maxTokens: options.maxTokens,
+        abortSignal: this.controller.signal,
+      });
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        yield { type: 'error', message: '无法读取响应流' };
-        return;
-      }
-
-      const decoder = new TextDecoder();
       let fullText = '';
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || !trimmed.startsWith('data: ')) continue;
-
-          const data = trimmed.slice(6);
-          if (data === '[DONE]') {
-            yield { type: 'done', fullText };
-            return;
-          }
-
-          try {
-            const parsed = JSON.parse(data);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              fullText += content;
-              yield { type: 'content', text: content };
-            }
-          } catch {
-            // Skip malformed SSE
-          }
-        }
+      for await (const text of result.textStream) {
+        fullText += text;
+        yield { type: 'content', text };
       }
-
       yield { type: 'done', fullText };
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {

@@ -46,19 +46,19 @@ export function AIPanel() {
 
       {/* Quick actions */}
       <div className="flex gap-1.5 px-3 py-2 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto">
-        <ActionChip label="续写" onClick={continueWriting} />
+        <ActionChip label="续写" onClick={continueWriting} disabled={isGenerating} />
         <ActionChip label="润色" onClick={() => {
           const sel = window.getSelection()?.toString();
-          if (sel) rewrite(sel);
-        }} />
+          if (sel && !isGenerating) rewrite(sel);
+        }} disabled={isGenerating} />
         <ActionChip label="翻译" onClick={() => {
           const sel = window.getSelection()?.toString();
-          if (sel) translate(sel);
-        }} />
+          if (sel && !isGenerating) translate(sel);
+        }} disabled={isGenerating} />
         <ActionChip label="总结" onClick={() => {
           const sel = window.getSelection()?.toString();
-          if (sel) summarize(sel);
-        }} />
+          if (sel && !isGenerating) summarize(sel);
+        }} disabled={isGenerating} />
       </div>
 
       {/* Messages */}
@@ -74,11 +74,12 @@ export function AIPanel() {
   );
 }
 
-function ActionChip({ label, onClick }: { label: string; onClick: () => void }) {
+function ActionChip({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+      disabled={disabled}
+      className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {label}
     </button>

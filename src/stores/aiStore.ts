@@ -41,7 +41,7 @@ const newId = () => crypto.randomUUID();
 export const useAIStore = create<AIState>((set) => ({
   provider: 'deepseek',
   apiKey: '',
-  model: 'deepseek-chat',
+  model: 'deepseek-v4-flash',
   temperature: 0.7,
   baseUrl: 'https://api.deepseek.com/v1',
   conversations: [],

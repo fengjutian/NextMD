@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useThemeStore } from '../../stores/themeStore';
-import { openFile } from '../../lib/fileOps';
+import { openFile, openFileByPath } from '../../lib/fileOps';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -21,6 +21,17 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     setCurrentFile({ name: result.name, path: result.path });
     setContent(result.content, false);
     addRecentFile(result.name, result.path);
+  };
+
+  const handleOpenRecentFile = async (filePath?: string) => {
+    const result = filePath ? await openFileByPath(filePath) : null;
+    if (result) {
+      setCurrentFile({ name: result.name, path: result.path });
+      setContent(result.content, false);
+      addRecentFile(result.name, result.path);
+      return;
+    }
+    handleOpenFile();
   };
 
   const handleNewFile = () => {
@@ -72,7 +83,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               {recentFiles.map((f) => (
                 <button
                   key={f.name + f.lastOpened}
-                  onClick={() => handleOpenFile()}
+                  onClick={() => handleOpenRecentFile(f.path)}
                   className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors truncate"
                 >
                   <FileText size={14} className="inline mr-2 text-[var(--text-muted)]" />{f.name}

@@ -73,6 +73,39 @@ export function MdEditor({ mode }: MdEditorProps) {
     }
   }, [mode]);
 
+  // Register toolbar insert handler
+  const { registerInsertMarkdown } = useEditorStore();
+  useEffect(() => {
+    registerInsertMarkdown((prefix: string, suffix = '') => {
+      const { content: cur, setContent: setCur } = useEditorStore.getState();
+      if (mode === 'wysiwyg' && editor) {
+        const { state } = editor;
+        const { from, to } = state.selection;
+        const selected = state.doc.textBetween(from, to);
+        editor
+          .chain()
+          .focus()
+          .insertContent(prefix + selected + suffix, { contentType: 'markdown' })
+          .setTextSelection(from + prefix.length + selected.length)
+          .run();
+      } else if (textareaRef.current) {
+        const ta = textareaRef.current;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const selected = cur.slice(start, end);
+        const newText = cur.slice(0, start) + prefix + selected + suffix + cur.slice(end);
+        setCur(newText);
+        requestAnimationFrame(() => {
+          ta.focus();
+          ta.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+        });
+      } else {
+        setCur(cur ? cur + '\n' + prefix + suffix : prefix + suffix);
+      }
+    });
+    return () => registerInsertMarkdown(null);
+  }, [mode, editor, registerInsertMarkdown]);
+
   if (mode === 'source') {
     return (
       <textarea

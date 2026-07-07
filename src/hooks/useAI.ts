@@ -18,7 +18,7 @@ export function useAI() {
   const setGenerating = useAIStore((s) => s.setGenerating);
   const togglePanel = useAIStore((s) => s.togglePanel);
 
-  const { content, setContent } = useEditorStore();
+  const { content } = useEditorStore();
   const abortRef = useRef<(() => void) | null>(null);
 
   const ensureConversation = useCallback(() => {
@@ -37,6 +37,7 @@ export function useAI() {
     setGenerating(true);
     addMessage(convId, { role: 'assistant', content: '' });
 
+    const store = useAIStore.getState();
     const client = getAIClient();
     abortRef.current = () => client.abort();
 
@@ -45,7 +46,7 @@ export function useAI() {
       ...getConvMessages(convId),
     ];
 
-    await streamToLastMessage(client, messages, convId);
+    await streamToLastMessage(client, messages, convId, store);
     setGenerating(false);
     abortRef.current = null;
   }, [ensureConversation, addMessage, setGenerating]);
@@ -75,13 +76,14 @@ export function useAI() {
   const continueWriting = useCallback(async () => {
     ensureConversation();
     const convId = useAIStore.getState().activeConversationId!;
-    const context = content.slice(-500);
+    const context = useEditorStore.getState().content.slice(-500);
     await runAction(context, CONTINUE_SYSTEM_PROMPT, '请续写以下内容：', convId, abortRef);
-  }, [ensureConversation, content]);
+  }, [ensureConversation]);
 
   const insertToEditor = useCallback((text: string) => {
-    setContent(content ? content + '\n\n' + text : text);
-  }, [content, setContent]);
+    const cur = useEditorStore.getState().content;
+    useEditorStore.getState().setContent(cur ? cur + '\n\n' + text : text);
+  }, []);
 
   return {
     activeConversationId,
@@ -123,7 +125,7 @@ async function runAction(
   ];
 
   try {
-    await streamToLastMessage(client, messages, convId);
+    await streamToLastMessage(client, messages, convId, store);
   } finally {
     store.setGenerating(false);
     abortRef.current = null;
@@ -133,11 +135,15 @@ async function runAction(
 async function streamToLastMessage(
   client: ReturnType<typeof getAIClient>,
   messages: AIMessage[],
-  convId: string
+  convId: string,
+  store: ReturnType<typeof useAIStore.getState>
 ) {
   let fullText = '';
   try {
-    for await (const chunk of client.chat(messages)) {
+    for await (const chunk of client.chat(messages, {
+      model: store.model,
+      temperature: store.temperature,
+    })) {
       if (chunk.type === 'content') {
         fullText += chunk.text;
         updateLastMsg(convId, fullText);
