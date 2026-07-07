@@ -105,6 +105,14 @@ html, body, #root {
   -webkit-backdrop-filter: blur(var(--blur-sidebar));
 }
 
+/* Tauri drag regions */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* Allow text selection in editor */
 .editor-area {
   user-select: text;
