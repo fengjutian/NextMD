@@ -29,7 +29,7 @@ export function WelcomeScreen() {
 
   return (
     <div className="flex-1 flex items-center justify-center bg-[var(--bg-editor)]">
-      <div className="text-center max-w-md animate-in fade-in">
+      <div className="text-center max-w-lg px-8 py-12">
         {/* Logo */}
         <div className="mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-orange-400 flex items-center justify-center shadow-[var(--shadow-md)]">
@@ -44,17 +44,17 @@ export function WelcomeScreen() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-center gap-3 mb-10">
+        <div className="flex items-center justify-center gap-4 mb-10">
           <button
             onClick={handleNewFile}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--text-primary)] text-white text-sm font-medium shadow-[var(--shadow-sm)] hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[var(--text-primary)] text-white text-sm font-medium shadow-[var(--shadow-sm)] hover:opacity-90 transition-opacity"
           >
             <FileText size={16} />
             新建文档
           </button>
           <button
             onClick={handleOpenFile}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--bg-card)] text-[var(--text-primary)] text-sm font-medium border border-[var(--border-default)] shadow-[var(--shadow-sm)] hover:bg-[var(--border-subtle)] transition-colors"
+            className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[var(--bg-card)] text-[var(--text-primary)] text-sm font-medium border border-[var(--border-default)] shadow-[var(--shadow-sm)] hover:bg-[var(--border-subtle)] transition-colors"
           >
             <FolderOpen size={16} />
             打开文件

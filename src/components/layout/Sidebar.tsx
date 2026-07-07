@@ -1,4 +1,4 @@
-import { FileText, FolderOpen, Clock, ChevronLeft, Sun, Moon, Monitor } from 'lucide-react';
+import { FileText, FolderOpen, Clock, ChevronLeft, ChevronRight, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -30,7 +30,19 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   };
 
   return (
-    <aside
+    <>
+      {/* Collapse toggle strip — always visible when sidebar collapsed */}
+      {collapsed && (
+        <button
+          onClick={onToggle}
+          className="shrink-0 w-8 h-full flex items-start justify-center pt-2 hover:bg-[var(--border-subtle)] transition-colors"
+          title="展开侧边栏"
+        >
+          <ChevronRight size={14} className="text-[var(--text-muted)]" />
+        </button>
+      )}
+
+      <aside
       className={cn(
         'flex flex-col h-full glass transition-all duration-300 ease-out shrink-0',
         'border-r border-[var(--border-subtle)]',
@@ -103,6 +115,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
       </div>
     </aside>
+    </>
   );
 }
 
