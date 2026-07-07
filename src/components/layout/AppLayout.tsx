@@ -3,39 +3,61 @@ import { Titlebar } from './Titlebar';
 import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { WelcomeScreen } from './WelcomeScreen';
+import { Toolbar } from '../editor/Toolbar';
+import { MdEditor } from '../editor/MdEditor';
+import { MdPreview } from '../editor/MdPreview';
 import { useFileStore } from '../../stores/fileStore';
+import { useEditorStore } from '../../stores/editorStore';
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { currentFile } = useFileStore();
+  const { viewMode } = useEditorStore();
 
+  // No file open: show welcome
+  if (!currentFile) {
+    return (
+      <div className="flex flex-col h-full bg-[var(--bg-window)]">
+        <Titlebar />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+          <WelcomeScreen />
+        </div>
+        <StatusBar />
+      </div>
+    );
+  }
+
+  // File open: show editor
   return (
     <div className="flex flex-col h-full bg-[var(--bg-window)]">
       <Titlebar />
+      <Toolbar />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {currentFile ? (
-            <div className="flex-1 flex items-center justify-center bg-[var(--bg-editor)]">
-              {/* Placeholder: TipTap editor coming in Phase 2 */}
-              <div className="text-center">
-                <p className="text-lg font-medium text-[var(--text-secondary)] mb-2">
-                  编辑器 — Phase 2
-                </p>
-                <p className="text-sm text-[var(--text-muted)]">
-                  正在编辑: {currentFile.name}
-                </p>
-              </div>
+        {/* Editor area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* WYSIWYG or Source */}
+          {(viewMode === 'wysiwyg' || viewMode === 'source') && (
+            <div className="flex-1 overflow-hidden">
+              <MdEditor mode={viewMode} />
             </div>
-          ) : (
-            <WelcomeScreen />
           )}
-        </main>
+
+          {/* Split: source + preview side by side */}
+          {viewMode === 'split' && (
+            <>
+              <div className="flex-1 border-r border-[var(--border-subtle)] overflow-hidden">
+                <MdEditor mode="source" />
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <MdPreview />
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <StatusBar />
