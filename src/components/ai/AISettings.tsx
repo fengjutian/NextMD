@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Settings, X } from 'lucide-react';
 import { useAIStore, type AIProvider } from '../../stores/aiStore';
 
@@ -26,14 +27,14 @@ export function AISettings({ triggerClass }: AISettingsProps) {
         <Settings size={14} />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-80 p-5 rounded-2xl shadow-[var(--shadow-lg)] border border-[var(--border-default)] glass"
+            className="w-80 p-5 rounded-2xl shadow-[var(--shadow-lg)] border border-[var(--border-default)]"
             style={{ background: 'var(--bg-card)' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -108,7 +109,8 @@ export function AISettings({ triggerClass }: AISettingsProps) {
               className="w-full accent-[var(--accent)]"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -30,43 +30,32 @@ export function WelcomeScreen() {
   return (
     <div className="flex-1 flex items-center justify-center bg-[var(--bg-editor)]">
       <div className="text-center max-w-lg px-8 py-12">
-        {/* Logo */}
         <div className="mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-orange-400 flex items-center justify-center shadow-[var(--shadow-md)]">
             <FileText size={28} className="text-white" />
           </div>
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">
-            NextMD
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Markdown 编辑器
-          </p>
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">NextMD</h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">Markdown 编辑器</p>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-center gap-4 mb-10">
           <button
             onClick={handleNewFile}
             className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[var(--text-primary)] text-white text-sm font-medium shadow-[var(--shadow-sm)] hover:opacity-90 transition-opacity"
           >
-            <FileText size={16} />
-            新建文档
+            <FileText size={16} />新建文档
           </button>
           <button
             onClick={handleOpenFile}
             className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[var(--bg-card)] text-[var(--text-primary)] text-sm font-medium border border-[var(--border-default)] shadow-[var(--shadow-sm)] hover:bg-[var(--border-subtle)] transition-colors"
           >
-            <FolderOpen size={16} />
-            打开文件
+            <FolderOpen size={16} />打开文件
           </button>
         </div>
 
-        {/* Recent files */}
         {recentFiles.length > 0 && (
           <div className="text-left mb-8">
-            <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">
-              最近文件
-            </h3>
+            <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">最近文件</h3>
             <div className="space-y-0.5">
               {recentFiles.slice(0, 5).map((f) => (
                 <button
@@ -76,20 +65,15 @@ export function WelcomeScreen() {
                 >
                   <FileText size={14} className="text-[var(--text-muted)] shrink-0" />
                   <span className="truncate">{f.name}</span>
-                  <span className="text-[11px] text-[var(--text-muted)] ml-auto shrink-0">
-                    {timeAgo(f.lastOpened)}
-                  </span>
+                  <span className="text-[11px] text-[var(--text-muted)] ml-auto shrink-0">{timeAgo(f.lastOpened)}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Templates */}
         <div className="text-left">
-          <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">
-            快速模板
-          </h3>
+          <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">快速模板</h3>
           <div className="flex gap-2">
             {templates.map((t) => (
               <button
@@ -101,8 +85,7 @@ export function WelcomeScreen() {
                 }}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
               >
-                {t.icon}
-                {t.label}
+                {t.icon}{t.label}
               </button>
             ))}
           </div>

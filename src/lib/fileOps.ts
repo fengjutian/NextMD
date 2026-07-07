@@ -5,6 +5,7 @@ export type { FileHandle };
 
 type FileOpsModule = {
   openFile: () => Promise<FileHandle | null>;
+  openFileByPath: (filePath: string) => Promise<FileHandle | null>;
   saveFile: (currentName: string, currentPath: string | undefined, content: string) => Promise<{ name: string; path?: string } | null>;
   saveFileAs: (currentName: string, content: string) => Promise<{ name: string; path?: string } | null>;
 };
@@ -24,6 +25,10 @@ async function getOps(): Promise<FileOpsModule> {
 
 export async function openFile(): Promise<FileHandle | null> {
   return (await getOps()).openFile();
+}
+
+export async function openFileByPath(filePath: string): Promise<FileHandle | null> {
+  return (await getOps()).openFileByPath(filePath);
 }
 
 export async function saveFile(

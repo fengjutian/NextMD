@@ -1,6 +1,14 @@
 import type { FileHandle } from './fileOps.tauri';
 
 /**
+ * In the browser, we cannot read files by path (security restriction).
+ * Returns null so callers can fall back to the file picker.
+ */
+export async function openFileByPath(_filePath: string): Promise<FileHandle | null> {
+  return null;
+}
+
+/**
  * Open a file using browser File API.
  */
 export function openFile(): Promise<FileHandle | null> {

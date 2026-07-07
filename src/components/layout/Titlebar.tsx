@@ -1,29 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Minus, Square, X, FileText } from 'lucide-react';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { isTauri } from '../../lib/env';
 import { useAIStore } from '../../stores/aiStore';
-
-// Tauri window API — only imported when in Tauri
-let tauriWindow: {
-  minimize: () => Promise<void>;
-  toggleMaximize: () => Promise<void>;
-  close: () => Promise<void>;
-  isMaximized: () => Promise<boolean>;
-} | null = null;
-
-async function getTauriWindow() {
-  if (!tauriWindow && isTauri()) {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window');
-    const win = getCurrentWindow();
-    tauriWindow = {
-      minimize: () => win.minimize(),
-      toggleMaximize: () => win.toggleMaximize(),
-      close: () => win.close(),
-      isMaximized: () => win.isMaximized(),
-    };
-  }
-  return tauriWindow;
-}
 
 export function Titlebar() {
   if (!isTauri()) {
@@ -36,9 +15,7 @@ function TauriTitlebar() {
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
-    getTauriWindow().then((win) => {
-      if (win) win.isMaximized().then(setMaximized);
-    });
+    getCurrentWindow().isMaximized().then(setMaximized);
   }, []);
 
   return (
@@ -55,25 +32,24 @@ function TauriTitlebar() {
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
         <button
-          onClick={() => getTauriWindow().then((w) => w?.minimize())}
+          onClick={() => getCurrentWindow().minimize()}
           className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-secondary)]"
           title="最小化"
         >
           <Minus size={14} />
         </button>
         <button
-          onClick={() => getTauriWindow().then(async (w) => {
-            if (!w) return;
-            await w.toggleMaximize();
-            setMaximized(await w.isMaximized());
-          })}
+          onClick={async () => {
+            await getCurrentWindow().toggleMaximize();
+            setMaximized(await getCurrentWindow().isMaximized());
+          }}
           className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-secondary)]"
           title={maximized ? '还原' : '最大化'}
         >
           <Square size={12} />
         </button>
         <button
-          onClick={() => getTauriWindow().then((w) => w?.close())}
+          onClick={() => getCurrentWindow().close()}
           className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-red-500 hover:text-white text-[var(--text-secondary)]"
           title="关闭"
         >

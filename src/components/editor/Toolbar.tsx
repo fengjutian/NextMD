@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
 import { useAIStore } from '../../stores/aiStore';
-import { AISettings } from '../ai/AISettings';
 import { cn } from '../../lib/utils';
 
 export function Toolbar() {
@@ -96,11 +95,6 @@ export function Toolbar() {
 
       {/* View mode toggle */}
       <div className="flex items-center gap-0.5 bg-[var(--border-subtle)] rounded-lg p-0.5 shrink-0">
-        {/* AI Settings — inside toggle group */}
-        <AISettings triggerClass="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] transition-colors" />
-
-        <div className="w-px h-4 bg-[var(--border-default)]" />
-
         {([
           { value: 'wysiwyg' as const, label: '所见即所得' },
           { value: 'source' as const, label: '源码' },

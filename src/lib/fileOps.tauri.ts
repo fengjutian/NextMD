@@ -8,6 +8,21 @@ export interface FileHandle {
 }
 
 /**
+ * Open a file by its filesystem path (no dialog).
+ */
+export async function openFileByPath(filePath: string): Promise<FileHandle | null> {
+  try {
+    if (!(await exists(filePath))) return null;
+    const content = await readTextFile(filePath);
+    const name = filePath.split(/[/\\]/).pop() || 'untitled.md';
+    return { name, path: filePath, content };
+  } catch (err) {
+    console.error('打开文件失败:', err);
+    return null;
+  }
+}
+
+/**
  * Open a file using native dialog and read its contents.
  */
 export async function openFile(): Promise<FileHandle | null> {
