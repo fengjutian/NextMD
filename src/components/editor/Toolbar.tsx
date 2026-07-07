@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import {
-  Bold, Italic, Underline, Strikethrough, Code,
+  Bold, Italic, Strikethrough, Code,
   Heading1, Heading2, Heading3,
   List, ListOrdered, ListTodo, Quote, Minus,
   Link, Image, Table, Code2, Sparkles
@@ -14,10 +14,9 @@ export function Toolbar() {
   const { isPanelOpen, togglePanel } = useAIStore();
 
   const insertMarkdown = useCallback((prefix: string, suffix = '') => {
-    // In WYSIWYG mode, TipTap handles formatting natively via its own toolbar
-    // This is for source mode or for inserting block-level elements
+    // Try textarea first (source mode)
     const textarea = document.querySelector('textarea');
-    if (textarea instanceof HTMLTextAreaElement) {
+    if (textarea instanceof HTMLTextAreaElement && textarea === document.activeElement) {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const selected = content.slice(start, end);
@@ -25,89 +24,96 @@ export function Toolbar() {
       setContent(newText);
       requestAnimationFrame(() => {
         textarea.focus();
-        textarea.setSelectionRange(
-          start + prefix.length,
-          end + prefix.length
-        );
+        textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
       });
+      return;
     }
+
+    // WYSIWYG mode or no active textarea: append to content
+    const insertion = prefix + suffix;
+    setContent(content ? content + '\n' + insertion : insertion);
   }, [content, setContent]);
 
-  const buttons = [
-    { icon: <Bold size={16} />, label: '粗体', action: () => insertMarkdown('**', '**') },
-    { icon: <Italic size={16} />, label: '斜体', action: () => insertMarkdown('*', '*') },
-    { icon: <Underline size={16} />, label: '下划线', action: () => insertMarkdown('<u>', '</u>') },
-    { icon: <Strikethrough size={16} />, label: '删除线', action: () => insertMarkdown('~~', '~~') },
-    { type: 'divider' as const },
-    { icon: <Heading1 size={16} />, label: 'H1', action: () => insertMarkdown('\n# ', '\n') },
-    { icon: <Heading2 size={16} />, label: 'H2', action: () => insertMarkdown('\n## ', '\n') },
-    { icon: <Heading3 size={16} />, label: 'H3', action: () => insertMarkdown('\n### ', '\n') },
-    { type: 'divider' as const },
-    { icon: <List size={16} />, label: '无序列表', action: () => insertMarkdown('\n- ', '\n') },
-    { icon: <ListOrdered size={16} />, label: '有序列表', action: () => insertMarkdown('\n1. ', '\n') },
-    { icon: <ListTodo size={16} />, label: '任务列表', action: () => insertMarkdown('\n- [ ] ', '\n') },
-    { icon: <Quote size={16} />, label: '引用', action: () => insertMarkdown('\n> ', '\n') },
-    { type: 'divider' as const },
-    { icon: <Link size={16} />, label: '链接', action: () => insertMarkdown('[', '](url)') },
-    { icon: <Image size={16} />, label: '图片', action: () => insertMarkdown('![', '](url)') },
-    { icon: <Table size={16} />, label: '表格', action: () => insertMarkdown('\n| 列1 | 列2 |\n| --- | --- |\n|     |     |\n') },
-    { icon: <Code2 size={16} />, label: '代码块', action: () => insertMarkdown('\n```\n', '\n```\n') },
-    { icon: <Minus size={16} />, label: '分隔线', action: () => insertMarkdown('\n---\n') },
-    { icon: <Code size={16} />, label: '行内代码', action: () => insertMarkdown('`', '`') },
-  ];
+  const ToolbarBtn = ({ icon, label, onClick: handleClick }: {
+    icon: React.ReactNode; label: string; onClick: () => void;
+  }) => (
+    <button
+      onClick={handleClick}
+      title={label}
+      className={cn(
+        'w-8 h-8 flex items-center justify-center rounded-lg shrink-0',
+        'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]',
+        'transition-colors'
+      )}
+    >
+      {icon}
+    </button>
+  );
 
   return (
     <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass overflow-x-auto">
-      {buttons.map((btn, i) => {
-        if ('type' in btn && btn.type === 'divider') {
-          return <div key={i} className="w-px h-5 bg-[var(--border-subtle)] mx-1 shrink-0" />;
-        }
-        return (
-          <button
-            key={i}
-            onClick={btn.action}
-            title={btn.label}
-            className={cn(
-              'w-8 h-8 flex items-center justify-center rounded-lg shrink-0',
-              'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]',
-              'transition-colors'
-            )}
-          >
-            {btn.icon}
-          </button>
-        );
-      })}
+      <ToolbarBtn icon={<Bold size={16} />} label="粗体 (Ctrl+B)" onClick={() => insertMarkdown('**', '**')} />
+      <ToolbarBtn icon={<Italic size={16} />} label="斜体 (Ctrl+I)" onClick={() => insertMarkdown('*', '*')} />
+      <ToolbarBtn icon={<Strikethrough size={16} />} label="删除线" onClick={() => insertMarkdown('~~', '~~')} />
+      <ToolbarBtn icon={<Code size={16} />} label="行内代码" onClick={() => insertMarkdown('`', '`')} />
+
+      <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+
+      <ToolbarBtn icon={<Heading1 size={16} />} label="一级标题" onClick={() => insertMarkdown('# ', '')} />
+      <ToolbarBtn icon={<Heading2 size={16} />} label="二级标题" onClick={() => insertMarkdown('## ', '')} />
+      <ToolbarBtn icon={<Heading3 size={16} />} label="三级标题" onClick={() => insertMarkdown('### ', '')} />
+
+      <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+
+      <ToolbarBtn icon={<List size={16} />} label="无序列表" onClick={() => insertMarkdown('- ', '')} />
+      <ToolbarBtn icon={<ListOrdered size={16} />} label="有序列表" onClick={() => insertMarkdown('1. ', '')} />
+      <ToolbarBtn icon={<ListTodo size={16} />} label="任务列表" onClick={() => insertMarkdown('- [ ] ', '')} />
+      <ToolbarBtn icon={<Quote size={16} />} label="引用" onClick={() => insertMarkdown('> ', '')} />
+
+      <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+
+      <ToolbarBtn icon={<Link size={16} />} label="链接" onClick={() => insertMarkdown('[链接文字](', ')')} />
+      <ToolbarBtn icon={<Image size={16} />} label="图片" onClick={() => insertMarkdown('![图片描述](', ')')} />
+      <ToolbarBtn icon={<Table size={16} />} label="表格" onClick={() => insertMarkdown('| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |', '')} />
+      <ToolbarBtn icon={<Code2 size={16} />} label="代码块" onClick={() => insertMarkdown('```\n', '\n```')} />
+      <ToolbarBtn icon={<Minus size={16} />} label="分隔线" onClick={() => insertMarkdown('---', '')} />
 
       <div className="flex-1" />
 
-      {/* AI toggle */}
+      {/* AI toggle — more visible */}
       <button
         onClick={togglePanel}
         title="AI 助手"
         className={cn(
-          'w-8 h-8 flex items-center justify-center rounded-lg shrink-0 transition-colors mr-1',
+          'flex items-center gap-1.5 h-8 px-2.5 rounded-lg shrink-0 transition-colors mr-1.5',
+          'text-xs font-medium',
           isPanelOpen
             ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
         )}
       >
-        <Sparkles size={16} />
+        <Sparkles size={14} />
+        <span className="hidden sm:inline">AI</span>
       </button>
 
       {/* View mode toggle */}
       <div className="flex items-center gap-0.5 bg-[var(--border-subtle)] rounded-lg p-0.5 shrink-0">
-        {(['wysiwyg', 'source', 'split'] as const).map((mode) => (
+        {([
+          { value: 'wysiwyg' as const, label: '所见即所得' },
+          { value: 'source' as const, label: '源码' },
+          { value: 'split' as const, label: '分屏' },
+        ]).map(({ value, label }) => (
           <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
+            key={value}
+            onClick={() => setViewMode(value)}
             className={cn(
-              'px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors',
-              viewMode === mode
+              'px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors whitespace-nowrap',
+              viewMode === value
                 ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             )}
           >
-            {{ wysiwyg: '所见即所得', source: '源码', split: '分屏' }[mode]}
+            {label}
           </button>
         ))}
       </div>

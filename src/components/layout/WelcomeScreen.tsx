@@ -71,18 +71,7 @@ export function WelcomeScreen() {
               {recentFiles.slice(0, 5).map((f) => (
                 <button
                   key={f.name + f.lastOpened}
-                  onClick={() => {
-                    // Recent files from browser don't have content stored,
-                    // so we need the user to re-open them.
-                    // For Tauri, we'd read the file from the stored path.
-                    if (f.path) {
-                      setCurrentFile({ name: f.name, path: f.path });
-                      // We don't have content, trigger a re-open
-                      handleOpenFile();
-                    } else {
-                      setCurrentFile({ name: f.name });
-                    }
-                  }}
+                  onClick={() => handleOpenFile()}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors flex items-center gap-2"
                 >
                   <FileText size={14} className="text-[var(--text-muted)] shrink-0" />
