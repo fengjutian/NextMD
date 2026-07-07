@@ -16,25 +16,38 @@ export function openFile(): Promise<FileHandle | null> {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.md,.markdown,.txt';
+
+    let settled = false;
+    const done = (result: FileHandle | null) => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('focus', onFocus);
+      clearTimeout(safetyTimeout);
+      resolve(result);
+    };
+
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) {
-        resolve(null);
+        done(null);
         return;
       }
       const content = await file.text();
-      resolve({ name: file.name, content });
+      done({ name: file.name, content });
     };
-    // Fallback for browsers without cancel detection
+
+    // Detect dialog cancel via focus return (works in most browsers)
     const onFocus = () => {
       window.removeEventListener('focus', onFocus);
       setTimeout(() => {
-        if (!input.files?.length) {
-          resolve(null);
-        }
+        if (!input.files?.length) done(null);
       }, 300);
     };
     window.addEventListener('focus', onFocus);
+
+    // Safety timeout: resolve after 60s if nothing happened
+    const safetyTimeout = setTimeout(() => done(null), 60_000);
+
     input.click();
   });
 }

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type AIProvider = 'openai' | 'deepseek' | 'mock';
 
@@ -38,46 +39,55 @@ interface AIState {
 
 const newId = () => crypto.randomUUID();
 
-export const useAIStore = create<AIState>((set) => ({
-  provider: 'deepseek',
-  apiKey: '',
-  model: 'deepseek-v4-flash',
-  temperature: 0.7,
-  baseUrl: 'https://api.deepseek.com/v1',
-  conversations: [],
-  activeConversationId: null,
-  isGenerating: false,
-  isPanelOpen: false,
+export const useAIStore = create<AIState>()(
+  persist(
+    (set) => ({
+      provider: 'deepseek',
+      apiKey: '',
+      model: 'deepseek-v4-flash',
+      temperature: 0.7,
+      baseUrl: 'https://api.deepseek.com/v1',
+      conversations: [],
+      activeConversationId: null,
+      isGenerating: false,
+      isPanelOpen: false,
 
-  setProvider: (provider) => set({ provider }),
-  setApiKey: (apiKey) => set({ apiKey }),
-  setModel: (model) => set({ model }),
-  setTemperature: (temperature) => set({ temperature }),
-  setBaseUrl: (baseUrl) => set({ baseUrl }),
-  setGenerating: (isGenerating) => set({ isGenerating }),
-  togglePanel: () => set((s) => ({ isPanelOpen: !s.isPanelOpen })),
+      setProvider: (provider) => set({ provider }),
+      setApiKey: (apiKey) => set({ apiKey }),
+      setModel: (model) => set({ model }),
+      setTemperature: (temperature) => set({ temperature }),
+      setBaseUrl: (baseUrl) => set({ baseUrl }),
+      setGenerating: (isGenerating) => set({ isGenerating }),
+      togglePanel: () => set((s) => ({ isPanelOpen: !s.isPanelOpen })),
 
-  addMessage: (convId, msg) =>
-    set((s) => ({
-      conversations: s.conversations.map((c) =>
-        c.id === convId ? { ...c, messages: [...c.messages, msg] } : c
-      ),
-    })),
+      addMessage: (convId, msg) =>
+        set((s) => ({
+          conversations: s.conversations.map((c) =>
+            c.id === convId ? { ...c, messages: [...c.messages, msg] } : c
+          ),
+        })),
 
-  newConversation: () => {
-    const id = newId();
-    set((s) => ({
-      conversations: [
-        ...s.conversations,
-        {
-          id,
-          title: '新对话',
-          messages: [],
-          createdAt: Date.now(),
-        },
-      ],
-      activeConversationId: id,
-    }));
-    return id;
-  },
-}));
+      newConversation: () => {
+        const id = newId();
+        set((s) => ({
+          conversations: [
+            ...s.conversations,
+            { id, title: '新对话', messages: [], createdAt: Date.now() },
+          ],
+          activeConversationId: id,
+        }));
+        return id;
+      },
+    }),
+    {
+      name: 'nextmd-ai',
+      partialize: (state) => ({
+        provider: state.provider,
+        model: state.model,
+        temperature: state.temperature,
+        baseUrl: state.baseUrl,
+        conversations: state.conversations,
+      }),
+    }
+  )
+);

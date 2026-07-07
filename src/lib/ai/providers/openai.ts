@@ -22,14 +22,14 @@ export class OpenAIClient implements IAIClient {
       const openai = createOpenAI({
         baseURL: this.baseUrl,
         apiKey: this.apiKey,
-        compatibility: 'compatible',
+        name: 'openai',
       });
 
       const result = streamText({
         model: openai.chat(options.model || 'gpt-4o'),
         messages: messages.map((m) => ({ role: m.role as 'system' | 'user' | 'assistant', content: m.content })),
         temperature: options.temperature ?? 0.7,
-        maxTokens: options.maxTokens,
+        maxOutputTokens: options.maxTokens,
         abortSignal: this.controller.signal,
       });
 

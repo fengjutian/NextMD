@@ -12,14 +12,14 @@ export function useTheme() {
   // Listen for system theme changes
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => {
-      if (theme === 'system') {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    const handler = () => {
+      if (useThemeStore.getState().theme === 'system') {
+        useThemeStore.getState()._resolve();
       }
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, [theme]);
+  }, []);
 
   return { theme, setTheme };
 }

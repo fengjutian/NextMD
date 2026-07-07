@@ -69,7 +69,7 @@ function ScrollToBottomContent({
       {/* Scroll-to-bottom button when user scrolled up */}
       {!atBottom && (
         <button
-          onClick={scrollToBottom}
+          onClick={() => scrollToBottom()}
           className="sticky bottom-0 mx-auto block rounded-full px-3 py-1 text-xs bg-[var(--accent)] text-white shadow-md hover:opacity-90 transition-opacity"
         >
           ↓ 滚动到底部

@@ -9,16 +9,17 @@ import {
 } from '../lib/ai/prompts';
 
 export function useAI() {
-  const activeConversationId = useAIStore((s) => s.activeConversationId);
-  const isPanelOpen = useAIStore((s) => s.isPanelOpen);
-  const isGenerating = useAIStore((s) => s.isGenerating);
-  const conversations = useAIStore((s) => s.conversations);
+  const store = useAIStore((s) => ({
+    activeConversationId: s.activeConversationId,
+    isPanelOpen: s.isPanelOpen,
+    isGenerating: s.isGenerating,
+    conversations: s.conversations,
+  }));
+  const { activeConversationId, isPanelOpen, isGenerating, conversations } = store;
   const newConversation = useAIStore((s) => s.newConversation);
   const addMessage = useAIStore((s) => s.addMessage);
   const setGenerating = useAIStore((s) => s.setGenerating);
   const togglePanel = useAIStore((s) => s.togglePanel);
-
-  const { content } = useEditorStore();
   const abortRef = useRef<(() => void) | null>(null);
 
   const ensureConversation = useCallback(() => {
