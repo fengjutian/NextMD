@@ -10,6 +10,7 @@ import type { AIProvider } from '../../stores/aiStore';
 export function createAIClient(provider: AIProvider, apiKey: string, baseUrl?: string): IAIClient {
   switch (provider) {
     case 'openai':
+    case 'deepseek':
       return new OpenAIClient(apiKey, baseUrl);
     case 'mock':
     default:

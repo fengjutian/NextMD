@@ -3,6 +3,28 @@ import { Minus, Square, X, FileText } from 'lucide-react';
 import { isTauri } from '../../lib/env';
 import { useAIStore } from '../../stores/aiStore';
 
+// Tauri window API — only imported when in Tauri
+let tauriWindow: {
+  minimize: () => Promise<void>;
+  toggleMaximize: () => Promise<void>;
+  close: () => Promise<void>;
+  isMaximized: () => Promise<boolean>;
+} | null = null;
+
+async function getTauriWindow() {
+  if (!tauriWindow && isTauri()) {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window');
+    const win = getCurrentWindow();
+    tauriWindow = {
+      minimize: () => win.minimize(),
+      toggleMaximize: () => win.toggleMaximize(),
+      close: () => win.close(),
+      isMaximized: () => win.isMaximized(),
+    };
+  }
+  return tauriWindow;
+}
+
 export function Titlebar() {
   if (!isTauri()) {
     return <BrowserHeader />;
@@ -11,42 +33,12 @@ export function Titlebar() {
 }
 
 function TauriTitlebar() {
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [maximized, setMaximized] = useState(false);
 
-  const handleMinimize = async () => {
-    try {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window');
-      await getCurrentWindow().minimize();
-    } catch { /* ignore if not in Tauri */ }
-  };
-
-  const handleMaximize = async () => {
-    try {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window');
-      const win = getCurrentWindow();
-      await win.toggleMaximize();
-      setIsMaximized(await win.isMaximized());
-    } catch { /* ignore */ }
-  };
-
-  const handleClose = async () => {
-    try {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window');
-      await getCurrentWindow().close();
-    } catch { /* ignore */ }
-  };
-
-  // Update maximize state
   useEffect(() => {
-    if (!isTauri()) return;
-    let mounted = true;
-    import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
-      if (!mounted) return;
-      getCurrentWindow().isMaximized().then((max: boolean) => {
-        if (mounted) setIsMaximized(max);
-      });
+    getTauriWindow().then((win) => {
+      if (win) win.isMaximized().then(setMaximized);
     });
-    return () => { mounted = false; };
   }, []);
 
   return (
@@ -58,23 +50,30 @@ function TauriTitlebar() {
       <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pl-2">
         NextMD
       </div>
-      <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+      <div
+        className="flex items-center gap-1"
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
         <button
-          onClick={handleMinimize}
+          onClick={() => getTauriWindow().then((w) => w?.minimize())}
           className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-secondary)]"
           title="最小化"
         >
           <Minus size={14} />
         </button>
         <button
-          onClick={handleMaximize}
+          onClick={() => getTauriWindow().then(async (w) => {
+            if (!w) return;
+            await w.toggleMaximize();
+            setMaximized(await w.isMaximized());
+          })}
           className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-secondary)]"
-          title={isMaximized ? '还原' : '最大化'}
+          title={maximized ? '还原' : '最大化'}
         >
           <Square size={12} />
         </button>
         <button
-          onClick={handleClose}
+          onClick={() => getTauriWindow().then((w) => w?.close())}
           className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-red-500 hover:text-white text-[var(--text-secondary)]"
           title="关闭"
         >

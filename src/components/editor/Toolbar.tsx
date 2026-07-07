@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
 import { useAIStore } from '../../stores/aiStore';
+import { AISettings } from '../ai/AISettings';
 import { cn } from '../../lib/utils';
 
 export function Toolbar() {
@@ -14,7 +15,6 @@ export function Toolbar() {
   const { isPanelOpen, togglePanel } = useAIStore();
 
   const insertMarkdown = useCallback((prefix: string, suffix = '') => {
-    // Try textarea first (source mode)
     const textarea = document.querySelector('textarea');
     if (textarea instanceof HTMLTextAreaElement && textarea === document.activeElement) {
       const start = textarea.selectionStart;
@@ -28,8 +28,6 @@ export function Toolbar() {
       });
       return;
     }
-
-    // WYSIWYG mode or no active textarea: append to content
     const insertion = prefix + suffix;
     setContent(content ? content + '\n' + insertion : insertion);
   }, [content, setContent]);
@@ -52,8 +50,8 @@ export function Toolbar() {
 
   return (
     <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass overflow-x-auto">
-      <ToolbarBtn icon={<Bold size={16} />} label="粗体 (Ctrl+B)" onClick={() => insertMarkdown('**', '**')} />
-      <ToolbarBtn icon={<Italic size={16} />} label="斜体 (Ctrl+I)" onClick={() => insertMarkdown('*', '*')} />
+      <ToolbarBtn icon={<Bold size={16} />} label="粗体" onClick={() => insertMarkdown('**', '**')} />
+      <ToolbarBtn icon={<Italic size={16} />} label="斜体" onClick={() => insertMarkdown('*', '*')} />
       <ToolbarBtn icon={<Strikethrough size={16} />} label="删除线" onClick={() => insertMarkdown('~~', '~~')} />
       <ToolbarBtn icon={<Code size={16} />} label="行内代码" onClick={() => insertMarkdown('`', '`')} />
 
@@ -80,7 +78,7 @@ export function Toolbar() {
 
       <div className="flex-1" />
 
-      {/* AI toggle — more visible */}
+      {/* AI toggle */}
       <button
         onClick={togglePanel}
         title="AI 助手"
@@ -98,6 +96,11 @@ export function Toolbar() {
 
       {/* View mode toggle */}
       <div className="flex items-center gap-0.5 bg-[var(--border-subtle)] rounded-lg p-0.5 shrink-0">
+        {/* AI Settings — inside toggle group */}
+        <AISettings triggerClass="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] transition-colors" />
+
+        <div className="w-px h-4 bg-[var(--border-default)]" />
+
         {([
           { value: 'wysiwyg' as const, label: '所见即所得' },
           { value: 'source' as const, label: '源码' },

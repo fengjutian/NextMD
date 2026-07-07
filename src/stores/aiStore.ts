@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AIProvider = 'openai' | 'anthropic' | 'mock';
+export type AIProvider = 'openai' | 'deepseek' | 'mock';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -39,11 +39,11 @@ interface AIState {
 const newId = () => crypto.randomUUID();
 
 export const useAIStore = create<AIState>((set) => ({
-  provider: 'mock',
+  provider: 'deepseek',
   apiKey: '',
-  model: 'gpt-4o',
+  model: 'deepseek-chat',
   temperature: 0.7,
-  baseUrl: 'https://api.openai.com/v1',
+  baseUrl: 'https://api.deepseek.com/v1',
   conversations: [],
   activeConversationId: null,
   isGenerating: false,
