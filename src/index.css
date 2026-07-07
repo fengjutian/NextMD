@@ -116,3 +116,231 @@ html, body, #root {
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+/* ============================================
+   TipTap Editor Styles — Apple Notes inspired
+   ============================================ */
+
+/* TipTap wrapper */
+.tiptap {
+  min-height: 100%;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  caret-color: var(--accent);
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+/* Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-style: italic;
+}
+
+/* Headings */
+.tiptap h1 {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.5em 0 0.5em;
+  letter-spacing: -0.02em;
+}
+.tiptap h2 {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.4em 0 0.4em;
+  letter-spacing: -0.01em;
+}
+.tiptap h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 1.2em 0 0.3em;
+}
+.tiptap h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 1em 0 0.2em;
+}
+
+/* Paragraphs */
+.tiptap p {
+  margin: 0.5em 0;
+}
+
+/* Bold / Italic */
+.tiptap strong { font-weight: 600; }
+.tiptap em { font-style: italic; }
+
+/* Code */
+.tiptap code {
+  background: var(--border-subtle);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.tiptap pre {
+  background: var(--bg-window);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 1em 1.2em;
+  margin: 1em 0;
+  overflow-x: auto;
+}
+.tiptap pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+
+/* Lists */
+.tiptap ul, .tiptap ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+.tiptap li {
+  margin: 0.2em 0;
+}
+.tiptap li p {
+  margin: 0;
+}
+
+/* Task list */
+.tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+}
+.tiptap ul[data-type="taskList"] li label {
+  margin-top: 0.15em;
+}
+.tiptap ul[data-type="taskList"] li[data-checked="true"] {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Blockquote */
+.tiptap blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1em;
+  margin: 1em 0;
+  color: var(--text-secondary);
+}
+
+/* Links */
+.tiptap a {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Horizontal rule */
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border-default);
+  margin: 2em 0;
+}
+
+/* Images */
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: 1em 0;
+}
+
+/* Table */
+.tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+.tiptap th, .tiptap td {
+  border: 1px solid var(--border-default);
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+.tiptap th {
+  background: var(--border-subtle);
+  font-weight: 600;
+}
+.tiptap td {
+  font-size: 0.95em;
+}
+
+/* Highlight */
+.tiptap mark {
+  background: var(--accent-muted);
+  border-radius: 2px;
+  padding: 0 0.2em;
+}
+
+/* Strikethrough */
+.tiptap s {
+  color: var(--text-muted);
+}
+
+/* Selection */
+.tiptap ::selection {
+  background: var(--accent-muted);
+}
+
+/* ============================================
+   Markdown Preview — Dark mode prose overrides
+   ============================================ */
+
+[data-theme='dark'] .prose {
+  color: var(--text-primary);
+}
+[data-theme='dark'] .prose h1,
+[data-theme='dark'] .prose h2,
+[data-theme='dark'] .prose h3,
+[data-theme='dark'] .prose h4 {
+  color: var(--text-primary);
+}
+[data-theme='dark'] .prose code {
+  color: var(--text-primary);
+  background: var(--border-subtle);
+}
+[data-theme='dark'] .prose pre {
+  background: var(--bg-window);
+  border-color: var(--border-subtle);
+}
+[data-theme='dark'] .prose blockquote {
+  color: var(--text-secondary);
+  border-left-color: var(--accent);
+}
+[data-theme='dark'] .prose table {
+  border-color: var(--border-default);
+}
+[data-theme='dark'] .prose th,
+[data-theme='dark'] .prose td {
+  border-color: var(--border-default);
+}
+[data-theme='dark'] .prose th {
+  background: var(--border-subtle);
+}
+[data-theme='dark'] .prose a {
+  color: var(--accent);
+}
+[data-theme='dark'] .prose hr {
+  border-color: var(--border-default);
+}
+[data-theme='dark'] .prose strong {
+  color: var(--text-primary);
+}
+
+

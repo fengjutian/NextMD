@@ -44,7 +44,7 @@ export function MdEditor({ mode }: MdEditorProps) {
     content: markdownToHtml(content),
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none outline-none min-h-full px-8 py-6 editor-area',
+        class: 'tiptap editor-area',
       },
     },
     onUpdate: ({ editor }) => {

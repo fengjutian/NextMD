@@ -1,6 +1,9 @@
-import { FileText, FolderOpen, Clock, Settings, ChevronLeft } from 'lucide-react';
+import { FileText, FolderOpen, Clock, ChevronLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useFileStore } from '../../stores/fileStore';
+import { useEditorStore } from '../../stores/editorStore';
+import { useThemeStore } from '../../stores/themeStore';
+import { openFile } from '../../lib/fileOps';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -8,7 +11,23 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  const { recentFiles, setCurrentFile } = useFileStore();
+  const { recentFiles, setCurrentFile, addRecentFile } = useFileStore();
+  const { setContent } = useEditorStore();
+  const { theme, setTheme } = useThemeStore();
+
+  const handleOpenFile = async () => {
+    const result = await openFile();
+    if (!result) return;
+    setCurrentFile({ name: result.name, path: result.path });
+    setContent(result.content);
+    addRecentFile(result.name, result.path);
+  };
+
+  const handleNewFile = () => {
+    setCurrentFile({ name: '未命名.md' });
+    setContent('');
+    addRecentFile('未命名.md', undefined);
+  };
 
   return (
     <aside
@@ -33,8 +52,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Quick actions */}
       <div className="px-3 py-2 space-y-1">
-        <SidebarButton icon={<FileText size={16} />} label="新建文档" />
-        <SidebarButton icon={<FolderOpen size={16} />} label="打开文件..." />
+        <SidebarButton icon={<FileText size={16} />} label="新建文档" onClick={handleNewFile} />
+        <SidebarButton icon={<FolderOpen size={16} />} label="打开文件..." onClick={handleOpenFile} />
       </div>
 
       {/* Recent files */}
@@ -59,9 +78,29 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
       )}
 
-      {/* Footer */}
+      {/* Footer — theme toggle */}
       <div className="px-2 py-2 border-t border-[var(--border-subtle)] shrink-0">
-        <SidebarButton icon={<Settings size={16} />} label="设置" />
+        <div className="flex items-center gap-0.5 p-0.5 bg-[var(--border-subtle)] rounded-lg">
+          {([
+            { value: 'light' as const, icon: <Sun size={13} />, label: '亮色' },
+            { value: 'dark' as const, icon: <Moon size={13} />, label: '暗色' },
+            { value: 'system' as const, icon: <Monitor size={13} />, label: '自动' },
+          ]).map(({ value, icon, label }) => (
+            <button
+              key={value}
+              onClick={() => setTheme(value)}
+              title={label}
+              className={cn(
+                'flex-1 flex items-center justify-center h-7 rounded-md transition-colors',
+                theme === value
+                  ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              )}
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
       </div>
     </aside>
   );

@@ -1,30 +1,24 @@
 import { FileText, FolderOpen, FilePlus } from 'lucide-react';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { openFile } from '../../lib/fileOps';
 
 export function WelcomeScreen() {
-  const { recentFiles, setCurrentFile } = useFileStore();
+  const { recentFiles, setCurrentFile, addRecentFile } = useFileStore();
   const { setContent } = useEditorStore();
 
   const handleNewFile = () => {
     setCurrentFile({ name: '未命名.md' });
     setContent('');
+    addRecentFile('未命名.md', undefined);
   };
 
-  const handleOpenFile = () => {
-    // Phase 3: Tauri native dialog
-    // For now, use browser fallback
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.md,.markdown,.txt';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const content = await file.text();
-      setCurrentFile({ name: file.name });
-      setContent(content);
-    };
-    input.click();
+  const handleOpenFile = async () => {
+    const result = await openFile();
+    if (!result) return;
+    setCurrentFile({ name: result.name, path: result.path });
+    setContent(result.content);
+    addRecentFile(result.name, result.path);
   };
 
   const templates = [
@@ -77,7 +71,18 @@ export function WelcomeScreen() {
               {recentFiles.slice(0, 5).map((f) => (
                 <button
                   key={f.name}
-                  onClick={() => setCurrentFile({ name: f.name, path: f.path })}
+                  onClick={() => {
+                    // Recent files from browser don't have content stored,
+                    // so we need the user to re-open them.
+                    // For Tauri, we'd read the file from the stored path.
+                    if (f.path) {
+                      setCurrentFile({ name: f.name, path: f.path });
+                      // We don't have content, trigger a re-open
+                      handleOpenFile();
+                    } else {
+                      setCurrentFile({ name: f.name });
+                    }
+                  }}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors flex items-center gap-2"
                 >
                   <FileText size={14} className="text-[var(--text-muted)] shrink-0" />
@@ -103,6 +108,7 @@ export function WelcomeScreen() {
                 onClick={() => {
                   setCurrentFile({ name: '未命名.md' });
                   setContent(t.content);
+                  addRecentFile('未命名.md', undefined);
                 }}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
               >
