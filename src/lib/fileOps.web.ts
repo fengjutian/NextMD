@@ -17,7 +17,16 @@ export function openFile(): Promise<FileHandle | null> {
       const content = await file.text();
       resolve({ name: file.name, content });
     };
-    input.oncancel = () => resolve(null);
+    // Fallback for browsers without cancel detection
+    const onFocus = () => {
+      window.removeEventListener('focus', onFocus);
+      setTimeout(() => {
+        if (!input.files?.length) {
+          resolve(null);
+        }
+      }, 300);
+    };
+    window.addEventListener('focus', onFocus);
     input.click();
   });
 }
@@ -40,9 +49,6 @@ export async function saveFile(
   return { name: currentName || 'untitled.md' };
 }
 
-/**
- * Save file as (browser: same as saveFile since no filesystem access).
- */
 export async function saveFileAs(
   currentName: string,
   content: string

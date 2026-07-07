@@ -3,13 +3,15 @@ import {
   Bold, Italic, Underline, Strikethrough, Code,
   Heading1, Heading2, Heading3,
   List, ListOrdered, ListTodo, Quote, Minus,
-  Link, Image, Table, Code2
+  Link, Image, Table, Code2, Sparkles
 } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
+import { useAIStore } from '../../stores/aiStore';
 import { cn } from '../../lib/utils';
 
 export function Toolbar() {
   const { viewMode, setViewMode, content, setContent } = useEditorStore();
+  const { isPanelOpen, togglePanel } = useAIStore();
 
   const insertMarkdown = useCallback((prefix: string, suffix = '') => {
     // In WYSIWYG mode, TipTap handles formatting natively via its own toolbar
@@ -77,6 +79,20 @@ export function Toolbar() {
       })}
 
       <div className="flex-1" />
+
+      {/* AI toggle */}
+      <button
+        onClick={togglePanel}
+        title="AI 助手"
+        className={cn(
+          'w-8 h-8 flex items-center justify-center rounded-lg shrink-0 transition-colors mr-1',
+          isPanelOpen
+            ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
+        )}
+      >
+        <Sparkles size={16} />
+      </button>
 
       {/* View mode toggle */}
       <div className="flex items-center gap-0.5 bg-[var(--border-subtle)] rounded-lg p-0.5 shrink-0">

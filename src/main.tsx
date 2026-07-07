@@ -19,13 +19,6 @@ const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const resolved = storedTheme === 'system' ? (systemDark ? 'dark' : 'light') : storedTheme;
 document.documentElement.setAttribute('data-theme', resolved);
 
-// Listen for system theme changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  if (storedTheme === 'system') {
-    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-  }
-});
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

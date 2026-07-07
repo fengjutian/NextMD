@@ -9,7 +9,7 @@ export function WelcomeScreen() {
 
   const handleNewFile = () => {
     setCurrentFile({ name: '未命名.md' });
-    setContent('');
+    setContent('', false);
     addRecentFile('未命名.md', undefined);
   };
 
@@ -17,7 +17,7 @@ export function WelcomeScreen() {
     const result = await openFile();
     if (!result) return;
     setCurrentFile({ name: result.name, path: result.path });
-    setContent(result.content);
+    setContent(result.content, false);
     addRecentFile(result.name, result.path);
   };
 
@@ -70,7 +70,7 @@ export function WelcomeScreen() {
             <div className="space-y-0.5">
               {recentFiles.slice(0, 5).map((f) => (
                 <button
-                  key={f.name}
+                  key={f.name + f.lastOpened}
                   onClick={() => {
                     // Recent files from browser don't have content stored,
                     // so we need the user to re-open them.
@@ -107,7 +107,7 @@ export function WelcomeScreen() {
                 key={t.label}
                 onClick={() => {
                   setCurrentFile({ name: '未命名.md' });
-                  setContent(t.content);
+                  setContent(t.content, false);
                   addRecentFile('未命名.md', undefined);
                 }}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"

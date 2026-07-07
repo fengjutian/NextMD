@@ -19,13 +19,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const result = await openFile();
     if (!result) return;
     setCurrentFile({ name: result.name, path: result.path });
-    setContent(result.content);
+    setContent(result.content, false);
     addRecentFile(result.name, result.path);
   };
 
   const handleNewFile = () => {
     setCurrentFile({ name: '未命名.md' });
-    setContent('');
+    setContent('', false);
     addRecentFile('未命名.md', undefined);
   };
 
@@ -66,8 +66,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <div className="px-2">
             {recentFiles.map((f) => (
               <button
-                key={f.name}
-                onClick={() => setCurrentFile({ name: f.name, path: f.path })}
+                key={f.name + f.lastOpened}
+                onClick={() => handleOpenFile()}
                 className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors truncate"
               >
                 <FileText size={14} className="inline mr-2 text-[var(--text-muted)]" />

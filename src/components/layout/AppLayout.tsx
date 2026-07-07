@@ -6,6 +6,7 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { Toolbar } from '../editor/Toolbar';
 import { MdEditor } from '../editor/MdEditor';
 import { MdPreview } from '../editor/MdPreview';
+import { AIPanel } from '../ai/AIPanel';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { saveFile, saveFileAs } from '../../lib/fileOps';
@@ -108,6 +109,9 @@ export function AppLayout() {
             </>
           )}
         </div>
+
+        {/* AI Panel */}
+        <AIPanel />
       </div>
 
       <StatusBar />

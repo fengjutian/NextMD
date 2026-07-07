@@ -19,6 +19,7 @@ interface AIState {
   apiKey: string;
   model: string;
   temperature: number;
+  baseUrl: string;
   conversations: AIConversation[];
   activeConversationId: string | null;
   isGenerating: boolean;
@@ -28,6 +29,7 @@ interface AIState {
   setApiKey: (key: string) => void;
   setModel: (model: string) => void;
   setTemperature: (t: number) => void;
+  setBaseUrl: (url: string) => void;
   setGenerating: (v: boolean) => void;
   togglePanel: () => void;
   addMessage: (convId: string, msg: AIMessage) => void;
@@ -41,6 +43,7 @@ export const useAIStore = create<AIState>((set) => ({
   apiKey: '',
   model: 'gpt-4o',
   temperature: 0.7,
+  baseUrl: 'https://api.openai.com/v1',
   conversations: [],
   activeConversationId: null,
   isGenerating: false,
@@ -50,6 +53,7 @@ export const useAIStore = create<AIState>((set) => ({
   setApiKey: (apiKey) => set({ apiKey }),
   setModel: (model) => set({ model }),
   setTemperature: (temperature) => set({ temperature }),
+  setBaseUrl: (baseUrl) => set({ baseUrl }),
   setGenerating: (isGenerating) => set({ isGenerating }),
   togglePanel: () => set((s) => ({ isPanelOpen: !s.isPanelOpen })),
 

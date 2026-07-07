@@ -7,7 +7,7 @@ interface EditorState {
   viewMode: ViewMode;
   isModified: boolean;
 
-  setContent: (content: string) => void;
+  setContent: (content: string, markModified?: boolean) => void;
   setViewMode: (mode: ViewMode) => void;
   markSaved: () => void;
 }
@@ -17,7 +17,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   viewMode: 'wysiwyg',
   isModified: false,
 
-  setContent: (content) => set({ content, isModified: true }),
+  setContent: (content, markModified = true) => set({ content, isModified: markModified }),
   setViewMode: (viewMode) => set({ viewMode }),
   markSaved: () => set({ isModified: false }),
 }));
