@@ -1,8 +1,12 @@
 import { useAI } from '../../hooks/useAI';
 import { AIChat } from './AIChat';
 import { AIInput } from './AIInput';
-import { Sparkles, X, Plus } from 'lucide-react';
-import type { AIConversation } from '../../stores/aiStore';
+import { FollowUpSuggestions } from './FollowUpSuggestions';
+import { X, Plus, GripVertical } from 'lucide-react';
+import { useAIStore, type AIConversation } from '../../stores/aiStore';
+import { EditorContext } from '../editor/MdEditor';
+import { cn } from '../../lib/utils';
+import { useContext, useState, useCallback, useEffect, useRef } from 'react';
 
 export function AIPanel() {
   const {
@@ -11,34 +15,85 @@ export function AIPanel() {
     isGenerating, stopGeneration,
     sendMessage, insertToEditor,
     continueWriting, rewrite, translate, summarize,
-    newConversation,
+    newConversation, resendMessage, editMessage,
   } = useAI();
 
   const activeConv = conversations.find((c: AIConversation) => c.id === activeConversationId);
   const messages = activeConv?.messages || [];
+  const editor = useContext(EditorContext);
+
+  // Get selected text from TipTap editor (works even after focus moves to button)
+  const getSelectedText = () => {
+    if (!editor) return window.getSelection()?.toString() || '';
+    const { from, to } = editor.state.selection;
+    return from !== to ? editor.state.doc.textBetween(from, to) : window.getSelection()?.toString() || '';
+  };
+
+  // Resizable panel
+  const [panelWidth, setPanelWidth] = useState(340);
+  const resizing = useRef(false);
+  const startX = useRef(0);
+  const startW = useRef(340);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    resizing.current = true;
+    startX.current = e.clientX;
+    startW.current = panelWidth;
+    e.preventDefault();
+  }, [panelWidth]);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!resizing.current) return;
+      const delta = startX.current - e.clientX;
+      setPanelWidth(Math.max(260, Math.min(800, startW.current + delta)));
+    };
+    const onMouseUp = () => { resizing.current = false; };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
 
   if (!isPanelOpen) return null;
 
   return (
-    <div className="w-[340px] shrink-0 flex flex-col h-full border-l border-[var(--border-subtle)] glass">
-      {/* Header */}
+    <div className="shrink-0 flex h-full" style={{ width: panelWidth }}>
+      {/* Drag handle */}
+      <div
+        className="w-1.5 shrink-0 cursor-col-resize hover:bg-[var(--accent)] hover:bg-opacity-30 transition-colors flex items-center justify-center group"
+        onMouseDown={onMouseDown}
+      >
+        <GripVertical size={12} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+
+      {/* Panel content */}
+      <div className="flex-1 flex flex-col h-full border-l border-[var(--border-subtle)] glass">
+      {/* Header with thread tabs */}
       <div className="flex items-center justify-between px-4 h-10 shrink-0 border-b border-[var(--border-subtle)]">
-        <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-[var(--accent)]" />
-          <span className="text-xs font-medium text-[var(--text-secondary)]">AI 助手</span>
+        <div className="flex items-center gap-1 overflow-x-auto flex-1 mr-2">
+          {conversations.slice(0, 5).map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => useAIStore.setState({ activeConversationId: conv.id })}
+              className={cn(
+                'px-2.5 py-1 text-[11px] font-medium rounded-md shrink-0 transition-colors',
+                activeConversationId === conv.id
+                  ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              )}
+            >
+              {conv.title || '对话'}
+            </button>
+          ))}
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={newConversation}
-            title="新对话"
-            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-muted)]"
-          >
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={newConversation} title="新对话" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-muted)]">
             <Plus size={14} />
           </button>
-          <button
-            onClick={togglePanel}
-            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-muted)]"
-          >
+          <button onClick={togglePanel} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-muted)]">
             <X size={14} />
           </button>
         </div>
@@ -46,23 +101,34 @@ export function AIPanel() {
 
       {/* Quick actions */}
       <div className="flex gap-1.5 px-3 py-2 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto">
-        <ActionChip label="续写" onClick={continueWriting} disabled={isGenerating} />
+        <ActionChip label="续写" onClick={() => continueWriting()} disabled={isGenerating} />
         <ActionChip label="润色" onClick={() => {
-          const sel = window.getSelection()?.toString();
+          const sel = getSelectedText();
           if (sel && !isGenerating) rewrite(sel);
         }} disabled={isGenerating} />
         <ActionChip label="翻译" onClick={() => {
-          const sel = window.getSelection()?.toString();
+          const sel = getSelectedText();
           if (sel && !isGenerating) translate(sel);
         }} disabled={isGenerating} />
         <ActionChip label="总结" onClick={() => {
-          const sel = window.getSelection()?.toString();
+          const sel = getSelectedText();
           if (sel && !isGenerating) summarize(sel);
         }} disabled={isGenerating} />
       </div>
 
       {/* Messages */}
-      <AIChat messages={messages} isGenerating={isGenerating} onInsert={insertToEditor} />
+      <AIChat
+        messages={messages}
+        isGenerating={isGenerating}
+        onInsert={insertToEditor}
+        onResend={resendMessage}
+        onEdit={(old, text) => editMessage(old, text)}
+      />
+
+      {/* Follow-up suggestions */}
+      {!isGenerating && messages.length > 0 && (
+        <FollowUpSuggestions onSelect={(q) => sendMessage(q)} />
+      )}
 
       {/* Input */}
       <AIInput
@@ -70,6 +136,7 @@ export function AIPanel() {
         isGenerating={isGenerating}
         onStop={stopGeneration}
       />
+      </div>
     </div>
   );
 }

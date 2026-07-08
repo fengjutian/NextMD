@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useAIStore, type AIMessage, type AIConversation } from '../stores/aiStore';
 import { useEditorStore } from '../stores/editorStore';
+import { useToastStore } from '../stores/toastStore';
 import { getAIClient } from '../lib/ai/aiClient';
 import {
   ASSISTANT_SYSTEM_PROMPT, REWRITE_SYSTEM_PROMPT,
@@ -30,6 +31,17 @@ export function useAI() {
     const state = useAIStore.getState();
     state.addMessage(convId, { role: 'user', content: userMessage });
     state.setGenerating(true);
+
+    // Check API key before calling
+    if (state.provider !== 'mock' && !state.apiKey.trim()) {
+      state.addMessage(convId, {
+        role: 'assistant',
+        content: '⚠️ 尚未配置 API Key\n\n请点击工具栏齿轮图标 ⚙️ → 选择服务商 → 输入 API Key → 测试连接。\n\nDeepSeek API Key 可在 [platform.deepseek.com](https://platform.deepseek.com/api_keys) 免费获取。',
+      });
+      state.setGenerating(false);
+      return;
+    }
+
     state.addMessage(convId, { role: 'assistant', content: '' });
 
     const client = getAIClient();
@@ -78,15 +90,47 @@ export function useAI() {
     setContent(content ? content + '\n\n' + text : text);
   }, [content, setContent]);
 
+  const resendMessage = useCallback(async (msgContent: string) => {
+    const state = useAIStore.getState();
+    const convId = store.activeConversationId;
+    if (!convId) return;
+    const conv = state.conversations.find((c: AIConversation) => c.id === convId);
+    if (conv) {
+      const msgs = [...conv.messages];
+      while (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs.pop();
+      useAIStore.setState({
+        conversations: state.conversations.map((c) =>
+          c.id === convId ? { ...c, messages: msgs } : c
+        ),
+      });
+    }
+    await sendMessage(msgContent);
+  }, [store.activeConversationId, sendMessage]);
+
+  const editMessage = useCallback(async (oldContent: string, newContent: string) => {
+    const state = useAIStore.getState();
+    const convId = store.activeConversationId;
+    if (!convId) return;
+    const conv = state.conversations.find((c: AIConversation) => c.id === convId);
+    if (conv) {
+      const msgs = conv.messages.map((m) =>
+        m.role === 'user' && m.content === oldContent ? { ...m, content: newContent } : m
+      );
+      while (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs.pop();
+      useAIStore.setState({
+        conversations: state.conversations.map((c) =>
+          c.id === convId ? { ...c, messages: msgs } : c
+        ),
+      });
+    }
+    await sendMessage(newContent);
+  }, [store.activeConversationId, sendMessage]);
+
   return {
     ...store,
     sendMessage,
-    stopGeneration,
-    rewrite,
-    translate,
-    summarize,
-    continueWriting,
-    insertToEditor,
+    stopGeneration, rewrite, translate, summarize, continueWriting,
+    insertToEditor, resendMessage, editMessage,
   };
 }
 
@@ -124,6 +168,7 @@ async function streamToLastMessage(
   convId: string
 ) {
   const { model, temperature } = useAIStore.getState();
+  const toast = useToastStore.getState();
   let fullText = '';
   try {
     for await (const chunk of client.chat(messages, { model, temperature })) {
@@ -134,10 +179,13 @@ async function streamToLastMessage(
         updateLastMsg(convId, chunk.fullText);
       } else if (chunk.type === 'error') {
         updateLastMsg(convId, `❌ ${chunk.message}`);
+        toast.show('error', chunk.message);
       }
     }
   } catch (err: unknown) {
-    updateLastMsg(convId, `❌ 错误: ${err instanceof Error ? err.message : String(err)}`);
+    const msg = `❌ 错误: ${err instanceof Error ? err.message : String(err)}`;
+    updateLastMsg(convId, msg);
+    toast.show('error', msg.replace('❌ ', ''));
   }
 }
 

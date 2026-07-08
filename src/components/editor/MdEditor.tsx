@@ -41,18 +41,20 @@ export function MdEditor({ mode }: MdEditorProps) {
       TableHeader,
     ],
     content,
-    autofocus: 'end',
-    onUpdate: ({ editor }) => {
-      const md = (editor.storage as any).markdown?.getMarkdown?.() ?? editor.getHTML();
-      setContent(typeof md === 'string' ? md : '');
-    },
+    contentType: 'markdown',
     editorProps: { attributes: { class: 'tiptap editor-area' } },
+    onUpdate: ({ editor }) => {
+      setContent(editor.getMarkdown());
+    },
   });
 
+  // Sync editor when content changes externally (e.g. file load or drop)
   const lastContentRef = useRef(content);
   useEffect(() => {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
-      editor.commands.setContent(content);
+      if (editor.getMarkdown() !== content) {
+        editor.commands.setContent(content, { contentType: 'markdown' });
+      }
       lastContentRef.current = content;
     }
   }, [content, editor, mode]);

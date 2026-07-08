@@ -8,7 +8,9 @@ import { MdPreview } from '../editor/MdPreview';
 import { AIPanel } from '../ai/AIPanel';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { ToastContainer } from './ToastContainer';
 import { saveFile, saveFileAs } from '../../lib/fileOps';
+import { isTauri } from '../../lib/env';
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -64,6 +66,54 @@ export function AppLayout() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isModified]);
 
+  // Drag-and-drop file open
+  useEffect(() => {
+    if (isTauri()) {
+      let unlisten: (() => void) | undefined;
+      (async () => {
+        const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+        unlisten = await getCurrentWebviewWindow().onDragDropEvent(async (event) => {
+          if (event.payload.type !== 'drop') return;
+          const paths = event.payload.paths;
+          if (!paths || paths.length === 0) return;
+          const path = paths[0];
+          if (!/\.(md|markdown|txt|mdx)$/i.test(path)) return;
+          const { openFileByPath } = await import('../../lib/fileOps');
+          const result = await openFileByPath(path);
+          if (result) {
+            setCurrentFile({ name: result.name, path: result.path });
+            useEditorStore.getState().setContent(result.content, false);
+            addRecentFile(result.name, result.path);
+          }
+        });
+      })();
+      return () => { unlisten?.(); };
+    }
+    // Web/browser drag-drop
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const handleDrop = async (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (!ext || !['md', 'markdown', 'txt', 'mdx'].includes(ext)) return;
+      const content = await file.text();
+      setCurrentFile({ name: file.name });
+      useEditorStore.getState().setContent(content, false);
+      addRecentFile(file.name);
+    };
+    document.addEventListener('dragover', handleDragOver);
+    document.addEventListener('drop', handleDrop);
+    return () => {
+      document.removeEventListener('dragover', handleDragOver);
+      document.removeEventListener('drop', handleDrop);
+    };
+  }, [setCurrentFile, addRecentFile]);
+
   // No file open: show welcome
   if (!currentFile) {
     return (
@@ -74,6 +124,7 @@ export function AppLayout() {
           <WelcomeScreen />
         </div>
         <StatusBar />
+        <ToastContainer />
       </div>
     );
   }
@@ -113,6 +164,7 @@ export function AppLayout() {
       </div>
 
       <StatusBar />
+      <ToastContainer />
     </div>
   );
 }

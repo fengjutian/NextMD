@@ -1,3 +1,5 @@
+use tauri::Manager;
+
 #[tauri::command]
 fn minimize_window(window: tauri::Window) {
     let _ = window.minimize();
@@ -32,11 +34,8 @@ pub fn run() {
       let icon_bytes = include_bytes!("../icons/icon.png");
       if let Ok(img) = image::load_from_memory(icon_bytes) {
         let rgba = img.into_rgba8();
-        let icon = tauri::image::Image::new_owned(
-          rgba.into_raw(),
-          rgba.width(),
-          rgba.height(),
-        );
+        let (w, h) = (rgba.width(), rgba.height());
+        let icon = tauri::image::Image::new_owned(rgba.into_raw(), w, h);
         if let Some(window) = app.get_webview_window("main") {
           let _ = window.set_icon(icon);
         }
