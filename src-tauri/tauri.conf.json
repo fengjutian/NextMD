@@ -10,11 +10,9 @@
     "beforeBuildCommand": "npm run build"
   },
   "app": {
-    "icon": "icons/icon.png",
     "windows": [
       {
         "title": "NextMD",
-        "icon": "icons/icon.png",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
