@@ -1,4 +1,4 @@
-import { FileText, FolderOpen, Clock, ChevronLeft, ChevronRight, Sun, Moon, Monitor } from 'lucide-react';
+import { FileText, FolderOpen, Clock, PanelLeftOpen, PanelLeftClose, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -48,7 +48,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           className="shrink-0 w-8 h-full flex items-start justify-center pt-2 hover:bg-[var(--border-subtle)] transition-colors"
           title="展开侧边栏"
         >
-          <ChevronRight size={14} className="text-[var(--text-muted)]" />
+          <PanelLeftOpen size={14} className="text-[var(--text-muted)]" />
         </button>
       )}
 
@@ -65,7 +65,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             onClick={onToggle}
             className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-muted)]"
           >
-            <ChevronLeft size={14} />
+            <PanelLeftClose size={14} />
           </button>
         </div>
 

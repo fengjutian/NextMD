@@ -11,7 +11,7 @@ import { useEditorStore } from '../../stores/editorStore';
 import { saveFile, saveFileAs } from '../../lib/fileOps';
 
 export function AppLayout() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { currentFile, setCurrentFile, addRecentFile } = useFileStore();
   const { viewMode, content, isModified, markSaved } = useEditorStore();
 

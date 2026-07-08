@@ -12,6 +12,14 @@ export function Titlebar() {
   return <TauriTitlebar />;
 }
 
+function AppIcon() {
+  return (
+    <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[var(--accent)] to-orange-400 flex items-center justify-center shadow-sm shrink-0">
+      <FileText size={11} className="text-white" />
+    </div>
+  );
+}
+
 function TauriTitlebar() {
   const [maximized, setMaximized] = useState(false);
   const { setCurrentFile } = useFileStore();
@@ -23,6 +31,7 @@ function TauriTitlebar() {
   return (
     <div className="flex items-center justify-between h-9 px-3 glass shrink-0 titlebar-drag">
       <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pl-2 titlebar-no-drag">
+        <AppIcon />
         <button
           onClick={() => setCurrentFile(null)}
           className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
@@ -65,7 +74,7 @@ function BrowserHeader() {
   return (
     <header className="flex items-center justify-between h-10 px-4 shrink-0 border-b border-[var(--border-subtle)] glass">
       <div className="flex items-center gap-3">
-        <FileText size={18} className="text-[var(--accent)]" />
+        <AppIcon />
         <span className="text-sm font-semibold text-[var(--text-primary)]">NextMD</span>
         <span className="text-[11px] text-[var(--text-muted)]">Markdown 编辑器</span>
       </div>

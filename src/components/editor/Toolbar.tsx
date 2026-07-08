@@ -98,31 +98,29 @@ export function Toolbar() {
       )}
 
       <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass overflow-x-auto">
-        <Btn icon={<Bold size={16} />} label="粗体" cmd="bold" srcPrefix="**" srcSuffix="**" activeName="bold" />
-        <Btn icon={<Italic size={16} />} label="斜体" cmd="italic" srcPrefix="*" srcSuffix="*" activeName="italic" />
-        <Btn icon={<Strikethrough size={16} />} label="删除线" cmd="strike" srcPrefix="~~" srcSuffix="~~" activeName="strike" />
-        <Btn icon={<Code size={16} />} label="行内代码" cmd="code" srcPrefix="`" srcSuffix="`" activeName="code" />
-
-        <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
-
-        <Btn icon={<Heading1 size={16} />} label="一级标题" cmd="h1" srcPrefix="# " activeName="heading" activeAttrs={{ level: 1 }} />
-        <Btn icon={<Heading2 size={16} />} label="二级标题" cmd="h2" srcPrefix="## " activeName="heading" activeAttrs={{ level: 2 }} />
-        <Btn icon={<Heading3 size={16} />} label="三级标题" cmd="h3" srcPrefix="### " activeName="heading" activeAttrs={{ level: 3 }} />
-
-        <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
-
-        <Btn icon={<List size={16} />} label="无序列表" cmd="bullet" srcPrefix="- " activeName="bulletList" />
-        <Btn icon={<ListOrdered size={16} />} label="有序列表" cmd="ordered" srcPrefix="1. " activeName="orderedList" />
-        <Btn icon={<ListTodo size={16} />} label="任务列表" cmd="task" srcPrefix="- [ ] " activeName="taskList" />
-        <Btn icon={<Quote size={16} />} label="引用" cmd="quote" srcPrefix="> " activeName="blockquote" />
-
-        <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
-
-        <Btn icon={<Link size={16} />} label="链接" srcPrefix="[文字](" srcSuffix=")" />
-        <Btn icon={<Image size={16} />} label="图片" srcPrefix="![描述](" srcSuffix=")" />
-        <Btn icon={<Table size={16} />} label="表格" srcPrefix="| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |" />
-        <Btn icon={<Code2 size={16} />} label="代码块" cmd="codeblock" srcPrefix="```\n" srcSuffix="\n```" activeName="codeBlock" />
-        <Btn icon={<Minus size={16} />} label="分隔线" cmd="hr" srcPrefix="---" />
+        {isWysiwyg && (
+          <>
+            <Btn icon={<Bold size={16} />} label="粗体" cmd="bold" srcPrefix="**" srcSuffix="**" activeName="bold" />
+            <Btn icon={<Italic size={16} />} label="斜体" cmd="italic" srcPrefix="*" srcSuffix="*" activeName="italic" />
+            <Btn icon={<Strikethrough size={16} />} label="删除线" cmd="strike" srcPrefix="~~" srcSuffix="~~" activeName="strike" />
+            <Btn icon={<Code size={16} />} label="行内代码" cmd="code" srcPrefix="`" srcSuffix="`" activeName="code" />
+            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+            <Btn icon={<Heading1 size={16} />} label="一级标题" cmd="h1" srcPrefix="# " activeName="heading" activeAttrs={{ level: 1 }} />
+            <Btn icon={<Heading2 size={16} />} label="二级标题" cmd="h2" srcPrefix="## " activeName="heading" activeAttrs={{ level: 2 }} />
+            <Btn icon={<Heading3 size={16} />} label="三级标题" cmd="h3" srcPrefix="### " activeName="heading" activeAttrs={{ level: 3 }} />
+            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+            <Btn icon={<List size={16} />} label="无序列表" cmd="bullet" srcPrefix="- " activeName="bulletList" />
+            <Btn icon={<ListOrdered size={16} />} label="有序列表" cmd="ordered" srcPrefix="1. " activeName="orderedList" />
+            <Btn icon={<ListTodo size={16} />} label="任务列表" cmd="task" srcPrefix="- [ ] " activeName="taskList" />
+            <Btn icon={<Quote size={16} />} label="引用" cmd="quote" srcPrefix="> " activeName="blockquote" />
+            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+            <Btn icon={<Link size={16} />} label="链接" srcPrefix="[文字](" srcSuffix=")" />
+            <Btn icon={<Image size={16} />} label="图片" srcPrefix="![描述](" srcSuffix=")" />
+            <Btn icon={<Table size={16} />} label="表格" srcPrefix="| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |" />
+            <Btn icon={<Code2 size={16} />} label="代码块" cmd="codeblock" srcPrefix="```\n" srcSuffix="\n```" activeName="codeBlock" />
+            <Btn icon={<Minus size={16} />} label="分隔线" cmd="hr" srcPrefix="---" />
+          </>
+        )}
 
         <div className="flex-1" />
 
