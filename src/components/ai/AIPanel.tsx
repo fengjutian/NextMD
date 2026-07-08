@@ -4,6 +4,7 @@ import { AIInput } from './AIInput';
 import { FollowUpSuggestions } from './FollowUpSuggestions';
 import { X, Plus, GripVertical } from 'lucide-react';
 import { useAIStore, type AIConversation } from '../../stores/aiStore';
+import { useEditorStore } from '../../stores/editorStore';
 import { EditorContext } from '../editor/MdEditor';
 import { cn } from '../../lib/utils';
 import { useContext, useState, useCallback, useEffect, useRef } from 'react';
@@ -21,6 +22,7 @@ export function AIPanel() {
   const activeConv = conversations.find((c: AIConversation) => c.id === activeConversationId);
   const messages = activeConv?.messages || [];
   const editor = useContext(EditorContext);
+  const { content } = useEditorStore();
 
   // Get selected text from TipTap editor (works even after focus moves to button)
   const getSelectedText = () => {
@@ -104,15 +106,15 @@ export function AIPanel() {
         <ActionChip label="续写" onClick={() => continueWriting()} disabled={isGenerating} />
         <ActionChip label="润色" onClick={() => {
           const sel = getSelectedText();
-          if (sel && !isGenerating) rewrite(sel);
+          if (sel) rewrite(sel); else rewrite(content);
         }} disabled={isGenerating} />
         <ActionChip label="翻译" onClick={() => {
           const sel = getSelectedText();
-          if (sel && !isGenerating) translate(sel);
+          if (sel) translate(sel); else translate(content);
         }} disabled={isGenerating} />
         <ActionChip label="总结" onClick={() => {
           const sel = getSelectedText();
-          if (sel && !isGenerating) summarize(sel);
+          if (sel) summarize(sel); else summarize(content);
         }} disabled={isGenerating} />
       </div>
 
