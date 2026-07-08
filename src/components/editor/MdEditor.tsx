@@ -26,6 +26,7 @@ export function MdEditor({ mode }: MdEditorProps) {
   const { content, setContent } = useEditorStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const initialLoadRef = useRef(true);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ codeBlock: { HTMLAttributes: { class: 'code-block' } } }),
@@ -44,7 +45,13 @@ export function MdEditor({ mode }: MdEditorProps) {
     contentType: 'markdown',
     editorProps: { attributes: { class: 'tiptap editor-area' } },
     onUpdate: ({ editor }) => {
-      setContent(editor.getMarkdown());
+      const md = editor.getMarkdown();
+      if (initialLoadRef.current) {
+        initialLoadRef.current = false;
+        setContent(md, false);
+        return;
+      }
+      setContent(md);
     },
   });
 
@@ -54,6 +61,7 @@ export function MdEditor({ mode }: MdEditorProps) {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
       if (editor.getMarkdown() !== content) {
         editor.commands.setContent(content, { contentType: 'markdown' });
+        initialLoadRef.current = false; // skip next onUpdate markModified
       }
       lastContentRef.current = content;
     }

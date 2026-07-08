@@ -15,8 +15,14 @@ export function AIChat({ messages, isGenerating, onInsert, onResend, onEdit }: A
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (isGenerating) {
+      // Instant scroll during streaming to avoid jitter
+      bottomRef.current?.scrollIntoView({ behavior: 'instant' as ScrollBehavior });
+    } else {
+      // Smooth scroll when generation completes
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isGenerating]);
 
   const visibleMessages = messages.filter((m) => m.content);
 
