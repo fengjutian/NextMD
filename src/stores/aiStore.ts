@@ -35,6 +35,7 @@ interface AIState {
   togglePanel: () => void;
   addMessage: (convId: string, msg: AIMessage) => void;
   newConversation: () => string;
+  deleteConversation: (convId: string) => void;
 }
 
 const newId = () => crypto.randomUUID();
@@ -62,10 +63,26 @@ export const useAIStore = create<AIState>()(
 
       addMessage: (convId, msg) =>
         set((s) => ({
-          conversations: s.conversations.map((c) =>
-            c.id === convId ? { ...c, messages: [...c.messages, msg] } : c
-          ),
+          conversations: s.conversations.map((c) => {
+            if (c.id !== convId) return c;
+            const messages = [...c.messages, msg];
+            // Auto-name: use first user message as title
+            const firstUserMsg = messages.find((m) => m.role === 'user');
+            const title = firstUserMsg ? firstUserMsg.content.slice(0, 20) + (firstUserMsg.content.length > 20 ? '...' : '') : c.title;
+            return { ...c, messages, title };
+          }),
         })),
+
+      deleteConversation: (convId) =>
+        set((s) => {
+          const filtered = s.conversations.filter((c) => c.id !== convId);
+          return {
+            conversations: filtered,
+            activeConversationId: s.activeConversationId === convId
+              ? (filtered[filtered.length - 1]?.id || null)
+              : s.activeConversationId,
+          };
+        }),
 
       newConversation: () => {
         const id = newId();

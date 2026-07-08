@@ -56,7 +56,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         className={cn(
           'flex flex-col h-full glass transition-all duration-300 ease-out shrink-0',
           'border-r border-[var(--border-subtle)]',
-          collapsed ? 'w-0 overflow-hidden border-none' : 'w-[240px]'
+          collapsed ? 'w-0 overflow-hidden border-none opacity-0' : 'w-[240px] opacity-100'
         )}
       >
         <div className="flex items-center justify-between px-4 h-10 shrink-0">

@@ -13,7 +13,7 @@ import { EditorContext } from '../editor/MdEditor';
 import { cn } from '../../lib/utils';
 
 export function Toolbar() {
-  const { viewMode, setViewMode, content, setContent } = useEditorStore();
+  const { viewMode, content, setContent } = useEditorStore();
   const { isPanelOpen, togglePanel } = useAIStore();
   const editor = useContext(EditorContext);
   const isWysiwyg = viewMode === 'wysiwyg' && !!editor;
@@ -97,49 +97,45 @@ export function Toolbar() {
         </BubbleMenu>
       )}
 
-      <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass overflow-x-auto">
-        {isWysiwyg && (
-          <>
-            <Btn icon={<Bold size={16} />} label="粗体" cmd="bold" srcPrefix="**" srcSuffix="**" activeName="bold" />
-            <Btn icon={<Italic size={16} />} label="斜体" cmd="italic" srcPrefix="*" srcSuffix="*" activeName="italic" />
-            <Btn icon={<Strikethrough size={16} />} label="删除线" cmd="strike" srcPrefix="~~" srcSuffix="~~" activeName="strike" />
-            <Btn icon={<Code size={16} />} label="行内代码" cmd="code" srcPrefix="`" srcSuffix="`" activeName="code" />
-            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
-            <Btn icon={<Heading1 size={16} />} label="一级标题" cmd="h1" srcPrefix="# " activeName="heading" activeAttrs={{ level: 1 }} />
-            <Btn icon={<Heading2 size={16} />} label="二级标题" cmd="h2" srcPrefix="## " activeName="heading" activeAttrs={{ level: 2 }} />
-            <Btn icon={<Heading3 size={16} />} label="三级标题" cmd="h3" srcPrefix="### " activeName="heading" activeAttrs={{ level: 3 }} />
-            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
-            <Btn icon={<List size={16} />} label="无序列表" cmd="bullet" srcPrefix="- " activeName="bulletList" />
-            <Btn icon={<ListOrdered size={16} />} label="有序列表" cmd="ordered" srcPrefix="1. " activeName="orderedList" />
-            <Btn icon={<ListTodo size={16} />} label="任务列表" cmd="task" srcPrefix="- [ ] " activeName="taskList" />
-            <Btn icon={<Quote size={16} />} label="引用" cmd="quote" srcPrefix="> " activeName="blockquote" />
-            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
-            <Btn icon={<Link size={16} />} label="链接" srcPrefix="[文字](" srcSuffix=")" />
-            <Btn icon={<Image size={16} />} label="图片" srcPrefix="![描述](" srcSuffix=")" />
-            <Btn icon={<Table size={16} />} label="表格" srcPrefix="| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |" />
-            <Btn icon={<Code2 size={16} />} label="代码块" cmd="codeblock" srcPrefix="```\n" srcSuffix="\n```" activeName="codeBlock" />
-            <Btn icon={<Minus size={16} />} label="分隔线" cmd="hr" srcPrefix="---" />
-          </>
-        )}
-
+      <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass">
+        {/* Left spacer */}
         <div className="flex-1" />
 
-        <button onClick={togglePanel} title="AI 助手" className={cn(
-          'flex items-center gap-1.5 h-8 px-2.5 rounded-lg shrink-0 transition-colors mr-1.5 text-xs font-medium',
-          isPanelOpen ? 'bg-[var(--accent-muted)] text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
-        )}>
-          <Sparkles size={14} /><span className="hidden sm:inline">AI</span>
-        </button>
+        {/* Center: editing buttons */}
+        <div className="flex items-center gap-0.5 overflow-x-auto">
+          {isWysiwyg && (
+            <>
+              <Btn icon={<Bold size={16} />} label="粗体" cmd="bold" srcPrefix="**" srcSuffix="**" activeName="bold" />
+              <Btn icon={<Italic size={16} />} label="斜体" cmd="italic" srcPrefix="*" srcSuffix="*" activeName="italic" />
+              <Btn icon={<Strikethrough size={16} />} label="删除线" cmd="strike" srcPrefix="~~" srcSuffix="~~" activeName="strike" />
+              <Btn icon={<Code size={16} />} label="行内代码" cmd="code" srcPrefix="`" srcSuffix="`" activeName="code" />
+              <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+              <Btn icon={<Heading1 size={16} />} label="一级标题" cmd="h1" srcPrefix="# " activeName="heading" activeAttrs={{ level: 1 }} />
+              <Btn icon={<Heading2 size={16} />} label="二级标题" cmd="h2" srcPrefix="## " activeName="heading" activeAttrs={{ level: 2 }} />
+              <Btn icon={<Heading3 size={16} />} label="三级标题" cmd="h3" srcPrefix="### " activeName="heading" activeAttrs={{ level: 3 }} />
+              <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+              <Btn icon={<List size={16} />} label="无序列表" cmd="bullet" srcPrefix="- " activeName="bulletList" />
+              <Btn icon={<ListOrdered size={16} />} label="有序列表" cmd="ordered" srcPrefix="1. " activeName="orderedList" />
+              <Btn icon={<ListTodo size={16} />} label="任务列表" cmd="task" srcPrefix="- [ ] " activeName="taskList" />
+              <Btn icon={<Quote size={16} />} label="引用" cmd="quote" srcPrefix="> " activeName="blockquote" />
+              <div className="w-px h-5 bg-[var(--border-subtle)] mx-1.5 shrink-0" />
+              <Btn icon={<Link size={16} />} label="链接" srcPrefix="[文字](" srcSuffix=")" />
+              <Btn icon={<Image size={16} />} label="图片" srcPrefix="![描述](" srcSuffix=")" />
+              <Btn icon={<Table size={16} />} label="表格" srcPrefix="| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |" />
+              <Btn icon={<Code2 size={16} />} label="代码块" cmd="codeblock" srcPrefix="```\n" srcSuffix="\n```" activeName="codeBlock" />
+              <Btn icon={<Minus size={16} />} label="分隔线" cmd="hr" srcPrefix="---" />
+            </>
+          )}
+        </div>
 
-        <div className="flex items-center gap-0.5 bg-[var(--border-subtle)] rounded-lg p-0.5 shrink-0">
-          {(['wysiwyg', 'source', 'split'] as const).map((mode) => (
-            <button key={mode} onClick={() => setViewMode(mode)} className={cn(
-              'px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors whitespace-nowrap',
-              viewMode === mode ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-            )}>
-              {{ wysiwyg: '所见即所得', source: '源码', split: '分屏' }[mode]}
-            </button>
-          ))}
+        {/* Right spacer + AI */}
+        <div className="flex-1 flex justify-end">
+          <button onClick={togglePanel} title="AI 助手" className={cn(
+            'flex items-center gap-1.5 h-8 px-2.5 rounded-lg shrink-0 transition-colors mr-1.5 text-xs font-medium',
+            isPanelOpen ? 'bg-[var(--accent-muted)] text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
+          )}>
+            <Sparkles size={14} /><span className="hidden sm:inline">AI</span>
+          </button>
         </div>
       </div>
     </>

@@ -76,19 +76,33 @@ export function AIPanel() {
       {/* Header with thread tabs */}
       <div className="flex items-center justify-between px-4 h-10 shrink-0 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-1 overflow-x-auto flex-1 mr-2">
-          {conversations.slice(0, 5).map((conv) => (
-            <button
-              key={conv.id}
-              onClick={() => useAIStore.setState({ activeConversationId: conv.id })}
-              className={cn(
-                'px-2.5 py-1 text-[11px] font-medium rounded-md shrink-0 transition-colors',
-                activeConversationId === conv.id
-                  ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+          {conversations.slice(0, 10).map((conv) => (
+            <div key={conv.id} className={cn(
+              'flex items-center gap-0.5 px-2 py-1 rounded-md shrink-0 transition-colors group',
+              activeConversationId === conv.id
+                ? 'bg-[var(--accent-muted)]'
+                : 'hover:bg-[var(--border-subtle)]'
+            )}>
+              <button
+                onClick={() => useAIStore.setState({ activeConversationId: conv.id })}
+                className={cn(
+                  'text-[11px] font-medium whitespace-nowrap',
+                  activeConversationId === conv.id
+                    ? 'text-[var(--accent)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                )}
+              >
+                {conv.title || '新对话'}
+              </button>
+              {conversations.length > 1 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); useAIStore.getState().deleteConversation(conv.id); }}
+                  className="w-4 h-4 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-[var(--border-subtle)] text-[var(--text-muted)]"
+                >
+                  <X size={10} />
+                </button>
               )}
-            >
-              {conv.title || '对话'}
-            </button>
+            </div>
           ))}
         </div>
         <div className="flex items-center gap-1 shrink-0">
