@@ -9,36 +9,29 @@ import {
 } from '../lib/ai/prompts';
 
 export function useAI() {
-  const store = useAIStore((s) => ({
-    activeConversationId: s.activeConversationId,
-    isPanelOpen: s.isPanelOpen,
-    isGenerating: s.isGenerating,
-    conversations: s.conversations,
-  }));
-  const { activeConversationId, isPanelOpen, isGenerating, conversations } = store;
-  const newConversation = useAIStore((s) => s.newConversation);
-  const addMessage = useAIStore((s) => s.addMessage);
-  const setGenerating = useAIStore((s) => s.setGenerating);
-  const togglePanel = useAIStore((s) => s.togglePanel);
+  // Use full store subscription to avoid selector infinite loops in React 19 + Zustand v5
+  const store = useAIStore();
+  const { content, setContent } = useEditorStore();
   const abortRef = useRef<(() => void) | null>(null);
 
   const ensureConversation = useCallback(() => {
-    if (!activeConversationId) {
-      newConversation();
+    let convId = store.activeConversationId;
+    if (!convId) {
+      convId = store.newConversation();
     }
-    if (!isPanelOpen) {
-      togglePanel();
+    if (!store.isPanelOpen) {
+      store.togglePanel();
     }
-  }, [activeConversationId, isPanelOpen, newConversation, togglePanel]);
+    return convId;
+  }, [store.activeConversationId, store.isPanelOpen]);
 
   const sendMessage = useCallback(async (userMessage: string) => {
-    ensureConversation();
-    const convId = useAIStore.getState().activeConversationId!;
-    addMessage(convId, { role: 'user', content: userMessage });
-    setGenerating(true);
-    addMessage(convId, { role: 'assistant', content: '' });
+    const convId = ensureConversation();
+    const state = useAIStore.getState();
+    state.addMessage(convId, { role: 'user', content: userMessage });
+    state.setGenerating(true);
+    state.addMessage(convId, { role: 'assistant', content: '' });
 
-    const store = useAIStore.getState();
     const client = getAIClient();
     abortRef.current = () => client.abort();
 
@@ -47,10 +40,10 @@ export function useAI() {
       ...getConvMessages(convId),
     ];
 
-    await streamToLastMessage(client, messages, convId, store);
-    setGenerating(false);
+    await streamToLastMessage(client, messages, convId);
+    state.setGenerating(false);
     abortRef.current = null;
-  }, [ensureConversation, addMessage, setGenerating]);
+  }, [ensureConversation]);
 
   const stopGeneration = useCallback(() => {
     abortRef.current?.();
@@ -77,24 +70,16 @@ export function useAI() {
   const continueWriting = useCallback(async () => {
     ensureConversation();
     const convId = useAIStore.getState().activeConversationId!;
-    const context = useEditorStore.getState().content.slice(-500);
+    const context = content.slice(-500);
     await runAction(context, CONTINUE_SYSTEM_PROMPT, '请续写以下内容：', convId, abortRef);
-  }, [ensureConversation]);
+  }, [ensureConversation, content]);
 
   const insertToEditor = useCallback((text: string) => {
-    const cur = useEditorStore.getState().content;
-    useEditorStore.getState().setContent(cur ? cur + '\n\n' + text : text);
-  }, []);
+    setContent(content ? content + '\n\n' + text : text);
+  }, [content, setContent]);
 
   return {
-    activeConversationId,
-    isPanelOpen,
-    isGenerating,
-    conversations,
-    newConversation,
-    addMessage,
-    setGenerating,
-    togglePanel,
+    ...store,
     sendMessage,
     stopGeneration,
     rewrite,
@@ -126,7 +111,7 @@ async function runAction(
   ];
 
   try {
-    await streamToLastMessage(client, messages, convId, store);
+    await streamToLastMessage(client, messages, convId);
   } finally {
     store.setGenerating(false);
     abortRef.current = null;
@@ -136,15 +121,11 @@ async function runAction(
 async function streamToLastMessage(
   client: ReturnType<typeof getAIClient>,
   messages: AIMessage[],
-  convId: string,
-  store: ReturnType<typeof useAIStore.getState>
+  convId: string
 ) {
   let fullText = '';
   try {
-    for await (const chunk of client.chat(messages, {
-      model: store.model,
-      temperature: store.temperature,
-    })) {
+    for await (const chunk of client.chat(messages)) {
       if (chunk.type === 'content') {
         fullText += chunk.text;
         updateLastMsg(convId, fullText);
@@ -161,7 +142,7 @@ async function streamToLastMessage(
 
 function getConvMessages(convId: string): AIMessage[] {
   const store = useAIStore.getState();
-  const conv: AIConversation | undefined = store.conversations.find((c: AIConversation) => c.id === convId);
+  const conv = store.conversations.find((c: AIConversation) => c.id === convId);
   return conv?.messages.filter((m: AIMessage) => m.content !== '') || [];
 }
 
