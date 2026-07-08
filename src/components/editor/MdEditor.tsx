@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, createContext } from 'react';
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
@@ -13,11 +13,10 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
+import { Toolbar } from './Toolbar';
 import { cn } from '../../lib/utils';
 
-// Shared editor ref for Toolbar access
-let activeEditor: Editor | null = null;
-export function getActiveEditor() { return activeEditor; }
+export const EditorContext = createContext<Editor | null>(null);
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -29,9 +28,7 @@ export function MdEditor({ mode }: MdEditorProps) {
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        codeBlock: { HTMLAttributes: { class: 'code-block' } },
-      }),
+      StarterKit.configure({ codeBlock: { HTMLAttributes: { class: 'code-block' } } }),
       Markdown,
       Placeholder.configure({ placeholder: '开始写作...' }),
       TaskList,
@@ -44,15 +41,12 @@ export function MdEditor({ mode }: MdEditorProps) {
       TableHeader,
     ],
     content,
+    autofocus: 'end',
     onUpdate: ({ editor }) => {
       const md = (editor.storage as any).markdown?.getMarkdown?.() ?? editor.getHTML();
       setContent(typeof md === 'string' ? md : '');
     },
-    editorProps: {
-      attributes: { class: 'tiptap editor-area' },
-    },
-    onCreate: ({ editor: ed }) => { activeEditor = ed; },
-    onDestroy: () => { activeEditor = null; },
+    editorProps: { attributes: { class: 'tiptap editor-area' } },
   });
 
   const lastContentRef = useRef(content);
@@ -69,27 +63,32 @@ export function MdEditor({ mode }: MdEditorProps) {
     }
   }, [mode]);
 
-  if (mode === 'source') {
-    return (
-      <textarea
-        ref={textareaRef}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className={cn(
-          'w-full h-full resize-none outline-none border-none px-8 py-6',
-          'font-mono text-sm leading-relaxed',
-          'bg-[var(--bg-editor)] text-[var(--text-primary)]',
-          'editor-area'
-        )}
-        placeholder="开始写作..."
-        spellCheck={false}
-      />
-    );
-  }
-
   return (
-    <div className="h-full overflow-y-auto bg-[var(--bg-editor)]">
-      <EditorContent editor={editor} className="h-full" />
-    </div>
+    <EditorContext.Provider value={editor}>
+      <div className="flex flex-col h-full">
+        <Toolbar />
+        {mode === 'source' ? (
+          <div className="flex-1 overflow-hidden">
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className={cn(
+                'w-full h-full resize-none outline-none border-none px-8 py-6',
+                'font-mono text-sm leading-relaxed',
+                'bg-[var(--bg-editor)] text-[var(--text-primary)]',
+                'editor-area'
+              )}
+              placeholder="开始写作..."
+              spellCheck={false}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto bg-[var(--bg-editor)]">
+            <EditorContent editor={editor} className="h-full" />
+          </div>
+        )}
+      </div>
+    </EditorContext.Provider>
   );
 }

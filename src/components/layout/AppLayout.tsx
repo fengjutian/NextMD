@@ -3,7 +3,6 @@ import { Titlebar } from './Titlebar';
 import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { WelcomeScreen } from './WelcomeScreen';
-import { Toolbar } from '../editor/Toolbar';
 import { MdEditor } from '../editor/MdEditor';
 import { MdPreview } from '../editor/MdPreview';
 import { AIPanel } from '../ai/AIPanel';
@@ -83,7 +82,6 @@ export function AppLayout() {
   return (
     <div className="flex flex-col h-full bg-[var(--bg-window)]">
       <Titlebar />
-      <Toolbar />
 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
