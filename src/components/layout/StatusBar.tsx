@@ -2,14 +2,14 @@ import { useEditorStore } from '../../stores/editorStore';
 import { AISettings } from '../ai/AISettings';
 
 export function StatusBar() {
-  const { viewMode, isModified, content } = useEditorStore();
+  const { isModified, content } = useEditorStore();
   const wordCount = content ? content.split(/\s+/).filter(Boolean).length : 0;
   const lineCount = content ? content.split('\n').length : 0;
 
   return (
     <div className="flex items-center justify-between h-7 px-4 text-[11px] text-[var(--text-muted)] border-t border-[var(--border-subtle)] glass shrink-0">
       <div className="flex items-center gap-3">
-        <span className="capitalize">{{ wysiwyg: '所见即所得', source: '源码', split: '分屏' }[viewMode]}</span>
+        {/* <span className="capitalize">{{ wysiwyg: '所见即所得', source: '源码', split: '分屏' }[viewMode]}</span> */}
       </div>
       <div className="flex items-center gap-3">
         <span>字数 {wordCount}</span>

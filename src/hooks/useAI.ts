@@ -143,8 +143,19 @@ async function runAction(
 ) {
   const store = useAIStore.getState();
   store.addMessage(convId, { role: 'user', content: `${prefix}\n\n${text}` });
-  store.addMessage(convId, { role: 'assistant', content: '' });
   store.setGenerating(true);
+
+  // Check API key
+  if (store.provider !== 'mock' && !store.apiKey.trim()) {
+    store.addMessage(convId, {
+      role: 'assistant',
+      content: '⚠️ 尚未配置 API Key\n\n请点击工具栏齿轮图标 ⚙️ → 选择服务商 → 输入 API Key。',
+    });
+    store.setGenerating(false);
+    return;
+  }
+
+  store.addMessage(convId, { role: 'assistant', content: '' });
 
   const client = getAIClient();
   abortRef.current = () => client.abort();
