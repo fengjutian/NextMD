@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Minus, Square, X, FileText } from 'lucide-react';
+import { Minus, Square, X, FileText, Home } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '../../lib/env';
 import { useAIStore } from '../../stores/aiStore';
+import { useFileStore } from '../../stores/fileStore';
 
 export function Titlebar() {
   if (!isTauri()) {
@@ -13,6 +14,7 @@ export function Titlebar() {
 
 function TauriTitlebar() {
   const [maximized, setMaximized] = useState(false);
+  const { setCurrentFile } = useFileStore();
 
   const minimize = () => invoke('minimize_window').catch(() => {});
   const maximize = () => invoke('maximize_window').then(() => setMaximized(!maximized)).catch(() => {});
@@ -20,7 +22,14 @@ function TauriTitlebar() {
 
   return (
     <div className="flex items-center justify-between h-9 px-3 glass shrink-0 titlebar-drag">
-      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pl-2">
+      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pl-2 titlebar-no-drag">
+        <button
+          onClick={() => setCurrentFile(null)}
+          className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
+          title="首页"
+        >
+          <Home size={13} />
+        </button>
         NextMD
       </div>
       <div className="flex items-center gap-1 titlebar-no-drag">

@@ -66,11 +66,11 @@ export function WelcomeScreen() {
           </button>
         </div>
 
-        {recentFiles.length > 0 && (
+        {recentFiles.filter((f) => f.path).length > 0 && (
           <div className="text-left mb-8">
             <h3 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">最近文件</h3>
             <div className="space-y-0.5">
-              {recentFiles.slice(0, 5).map((f) => (
+              {recentFiles.filter((f) => f.path).slice(0, 5).map((f) => (
                 <button
                   key={f.name + f.lastOpened}
                   onClick={() => handleOpenRecentFile(f.path)}

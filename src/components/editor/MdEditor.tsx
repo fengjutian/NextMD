@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -14,6 +14,10 @@ import TableHeader from '@tiptap/extension-table-header';
 
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { cn } from '../../lib/utils';
+
+// Shared editor ref for Toolbar access
+let activeEditor: Editor | null = null;
+export function getActiveEditor() { return activeEditor; }
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -47,6 +51,8 @@ export function MdEditor({ mode }: MdEditorProps) {
     editorProps: {
       attributes: { class: 'tiptap editor-area' },
     },
+    onCreate: ({ editor: ed }) => { activeEditor = ed; },
+    onDestroy: () => { activeEditor = null; },
   });
 
   const lastContentRef = useRef(content);

@@ -123,9 +123,10 @@ async function streamToLastMessage(
   messages: AIMessage[],
   convId: string
 ) {
+  const { model, temperature } = useAIStore.getState();
   let fullText = '';
   try {
-    for await (const chunk of client.chat(messages)) {
+    for await (const chunk of client.chat(messages, { model, temperature })) {
       if (chunk.type === 'content') {
         fullText += chunk.text;
         updateLastMsg(convId, fullText);

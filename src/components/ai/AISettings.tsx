@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Settings, X } from 'lucide-react';
+import { Settings, X, Zap } from 'lucide-react';
 import { useAIStore, type AIProvider } from '../../stores/aiStore';
+import { createAIClient } from '../../lib/ai/aiClient';
 
 const PROVIDERS: { value: AIProvider; label: string; help: string }[] = [
   { value: 'deepseek', label: 'DeepSeek', help: 'api.deepseek.com/v1' },
@@ -15,7 +16,42 @@ interface AISettingsProps {
 
 export function AISettings({ triggerClass }: AISettingsProps) {
   const [open, setOpen] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const store = useAIStore();
+
+  const handleTest = async () => {
+    if (store.provider === 'mock') {
+      setTestResult({ ok: true, msg: 'Mock 模式无需测试' });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const client = createAIClient(store.provider, store.apiKey, store.baseUrl);
+      for await (const chunk of client.chat(
+        [{ role: 'user', content: 'hi' }],
+        { model: store.model },
+      )) {
+        if (chunk.type === 'content') {
+          setTestResult({ ok: true, msg: '连接成功！AI 已响应' });
+          break;
+        }
+        if (chunk.type === 'error') {
+          setTestResult({ ok: false, msg: chunk.message });
+          break;
+        }
+        if (chunk.type === 'done') {
+          setTestResult({ ok: false, msg: 'AI 无输出，请检查模型名称' });
+          break;
+        }
+      }
+    } catch (err: unknown) {
+      setTestResult({ ok: false, msg: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setTesting(false);
+    }
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -100,6 +136,24 @@ export function AISettings({ triggerClass }: AISettingsProps) {
             onChange={(e) => store.setTemperature(parseFloat(e.target.value))}
             className="w-full accent-[var(--accent)]"
           />
+
+          {store.provider !== 'mock' && (
+            <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
+              <button
+                onClick={handleTest}
+                disabled={testing}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]"
+              >
+                <Zap size={13} />
+                {testing ? '测试中...' : '测试连接'}
+              </button>
+              {testResult && (
+                <p className={`mt-2 text-xs ${testResult.ok ? 'text-green-500' : 'text-red-400'}`}>
+                  {testResult.ok ? '✅ ' : '❌ '}{testResult.msg}
+                </p>
+              )}
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
