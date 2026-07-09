@@ -32,10 +32,10 @@ export function AIPanel() {
   };
 
   // Resizable panel
-  const [panelWidth, setPanelWidth] = useState(340);
+  const [panelWidth, setPanelWidth] = useState(260);
   const resizing = useRef(false);
   const startX = useRef(0);
-  const startW = useRef(340);
+  const startW = useRef(260);
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     resizing.current = true;
@@ -86,7 +86,7 @@ export function AIPanel() {
               <button
                 onClick={() => useAIStore.setState({ activeConversationId: conv.id })}
                 className={cn(
-                  'text-[11px] font-medium whitespace-nowrap',
+                  'text-[11px] font-medium whitespace-nowrap max-w-[120px] truncate',
                   activeConversationId === conv.id
                     ? 'text-[var(--accent)]'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'

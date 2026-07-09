@@ -88,8 +88,8 @@ export const useAIStore = create<AIState>()(
         const id = newId();
         set((s) => ({
           conversations: [
-            ...s.conversations,
             { id, title: '新对话', messages: [], createdAt: Date.now() },
+            ...s.conversations,
           ],
           activeConversationId: id,
         }));
