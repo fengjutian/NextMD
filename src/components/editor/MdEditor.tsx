@@ -20,6 +20,7 @@ import { SearchHighlight } from '../../lib/searchHighlight';
 import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
 import { MarkdownCodeBlock } from './MarkdownCodeBlock';
 import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
+import { cleanRichEditorMarkdown, prepareMarkdownForRichEditor } from '../../lib/markdownCompatibility';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -52,7 +53,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       TableHeader,
       SearchHighlight,
     ],
-    content,
+    content: prepareMarkdownForRichEditor(content),
     contentType: 'markdown',
     editorProps: { attributes: { class: 'tiptap editor-area' } },
     onUpdate: ({ editor }) => {
@@ -60,19 +61,19 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
       updateTimerRef.current = window.setTimeout(() => {
         updateTimerRef.current = null;
-        setContent(editor.getMarkdown());
+        setContent(cleanRichEditorMarkdown(editor.getMarkdown()));
       }, 60);
     },
   });
 
   useEffect(() => {
     if (!editor || mode !== 'wysiwyg') return;
-    useEditorStore.getState().registerContentReader(() => editor.getMarkdown());
+    useEditorStore.getState().registerContentReader(() => cleanRichEditorMarkdown(editor.getMarkdown()));
     return () => {
       if (updateTimerRef.current) {
         window.clearTimeout(updateTimerRef.current);
         updateTimerRef.current = null;
-        setContent(editor.getMarkdown());
+        setContent(cleanRichEditorMarkdown(editor.getMarkdown()));
       }
       useEditorStore.getState().registerContentReader(null);
     };
@@ -98,10 +99,10 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const lastContentRef = useRef(content);
   useEffect(() => {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
-      if (editor.getMarkdown() !== content) {
+      if (cleanRichEditorMarkdown(editor.getMarkdown()) !== content) {
         syncingRef.current = true;
         try {
-          editor.commands.setContent(content, { contentType: 'markdown' });
+          editor.commands.setContent(prepareMarkdownForRichEditor(content), { contentType: 'markdown' });
         } finally {
           syncingRef.current = false;
         }

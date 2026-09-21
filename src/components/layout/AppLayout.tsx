@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { Titlebar } from './Titlebar';
-import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ToastContainer } from './ToastContainer';
@@ -16,7 +15,6 @@ import { DocumentOutline } from './DocumentOutline';
 const MdPreview = lazy(() => import('../editor/MdPreview').then((module) => ({ default: module.MdPreview })));
 
 export function AppLayout() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [findOpen, setFindOpen] = useState(false);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [richEditor, setRichEditor] = useState<Editor | null>(null);
@@ -40,9 +38,9 @@ export function AppLayout() {
     <div className="flex flex-col h-full bg-[var(--bg-window)]">
       <Titlebar />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((value) => !value)} />
         {!currentFile ? <WelcomeScreen /> : (
           <>
+            <DocumentOutline editor={richEditor} />
             <div className="flex-1 flex flex-col overflow-hidden">
               <FindReplace open={findOpen} replaceOpen={replaceOpen} editor={richEditor}
                 onOpen={openFind} onClose={closeFind} />
@@ -63,7 +61,6 @@ export function AppLayout() {
                 )}
               </div>
             </div>
-            <DocumentOutline editor={richEditor} />
             <AIPanel editor={richEditor} />
           </>
         )}

@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/react';
-import { ChevronLeft, ListTree } from 'lucide-react';
+import { ChevronRight, ListTree } from 'lucide-react';
 import { useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { getOutline } from '../../lib/outline';
@@ -27,7 +27,7 @@ export function DocumentOutline({ editor }: Props) {
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     const resize = (moveEvent: PointerEvent) => {
-      const candidate = Math.max(0, Math.min(420, startWidth + startX - moveEvent.clientX));
+      const candidate = Math.max(0, Math.min(420, startWidth + moveEvent.clientX - startX));
       setWidth(candidate < 100 ? 0 : Math.max(160, candidate));
     };
     const stop = () => {
@@ -57,7 +57,7 @@ export function DocumentOutline({ editor }: Props) {
   return (
     <aside
       style={{ width }}
-      className={`relative hidden xl:flex shrink-0 flex-col bg-[var(--bg-editor)] ${width ? 'border-l border-[var(--border-subtle)]' : ''}`}
+      className={`relative hidden xl:flex shrink-0 flex-col bg-[var(--bg-editor)] ${width ? 'border-r border-[var(--border-subtle)]' : ''}`}
     >
       <div
         role="separator"
@@ -65,17 +65,17 @@ export function DocumentOutline({ editor }: Props) {
         aria-orientation="vertical"
         onPointerDown={startResize}
         onDoubleClick={() => { setWidth(208); window.localStorage.setItem('nextmd-outline-width', '208'); }}
-        className="absolute inset-y-0 -left-1 z-20 w-2 cursor-col-resize touch-none hover:bg-[var(--accent-muted)]"
+        className="absolute inset-y-0 -right-1 z-20 w-2 cursor-col-resize touch-none hover:bg-[var(--accent-muted)]"
       />
       {width === 0 ? (
         <button
           type="button"
           onClick={() => { setWidth(208); window.localStorage.setItem('nextmd-outline-width', '208'); }}
-          title="展开目录（也可以向左拖动）"
+          title="展开大纲（也可以向右拖动）"
           aria-label="展开目录"
-          className="absolute right-0 top-3 z-30 flex h-8 w-5 items-center justify-center rounded-l-md border border-r-0 border-[var(--border-default)] bg-[var(--bg-card)] text-[var(--text-muted)] shadow-sm hover:text-[var(--text-primary)]"
+          className="absolute left-0 top-3 z-30 flex h-8 w-5 items-center justify-center rounded-r-md border border-l-0 border-[var(--border-default)] bg-[var(--bg-card)] text-[var(--text-muted)] shadow-sm hover:text-[var(--text-primary)]"
         >
-          <ChevronLeft size={13} />
+          <ChevronRight size={13} />
         </button>
       ) : <>
         <div className="flex h-11 shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] px-4 text-xs font-medium text-[var(--text-secondary)]">
