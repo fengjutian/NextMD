@@ -38,6 +38,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
 
   const syncingRef = useRef(false);
   const updateTimerRef = useRef<number | null>(null);
+  const pendingUpdateRef = useRef<{ revision: number; content: string } | null>(null);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ codeBlock: false, bold: false }),
@@ -62,9 +63,16 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       if (syncingRef.current) return;
       if (transaction.getMeta('nextmd:visual-only')) return;
       if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
+      const revision = useEditorStore.getState().contentRevision;
+      const nextContent = editor.getMarkdown();
+      pendingUpdateRef.current = { revision, content: nextContent };
       updateTimerRef.current = window.setTimeout(() => {
         updateTimerRef.current = null;
-        setContent(editor.getMarkdown());
+        pendingUpdateRef.current = null;
+        // A file load/save happened after this update was queued. Discard the
+        // stale callback so it cannot turn a freshly loaded file dirty.
+        if (useEditorStore.getState().contentRevision !== revision) return;
+        setContent(nextContent);
       }, 60);
     },
   });
@@ -76,7 +84,11 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       if (updateTimerRef.current) {
         window.clearTimeout(updateTimerRef.current);
         updateTimerRef.current = null;
-        setContent(editor.getMarkdown());
+        const pending = pendingUpdateRef.current;
+        pendingUpdateRef.current = null;
+        if (pending && useEditorStore.getState().contentRevision === pending.revision) {
+          setContent(pending.content);
+        }
       }
       useEditorStore.getState().registerContentReader(null);
     };
@@ -108,9 +120,14 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   useEffect(() => {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
       if (editor.getMarkdown() !== content) {
+        if (updateTimerRef.current) {
+          window.clearTimeout(updateTimerRef.current);
+          updateTimerRef.current = null;
+          pendingUpdateRef.current = null;
+        }
         syncingRef.current = true;
         try {
-          editor.commands.setContent(content, { contentType: 'markdown' });
+          editor.commands.setContent(content, { contentType: 'markdown', emitUpdate: false });
         } finally {
           syncingRef.current = false;
         }

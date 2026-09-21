@@ -4,6 +4,7 @@ export type ViewMode = 'wysiwyg' | 'source' | 'split';
 
 interface EditorState {
   content: string;
+  contentRevision: number;
   viewMode: ViewMode;
   isModified: boolean;
   focusMode: boolean;
@@ -24,6 +25,7 @@ interface EditorState {
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   content: '',
+  contentRevision: 0,
   viewMode: 'wysiwyg',
   isModified: false,
   focusMode: false,
@@ -31,7 +33,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   contentReader: null,
   insertMarkdown: null,
 
-  setContent: (content, markModified = true) => set({ content, isModified: markModified }),
+  setContent: (content, markModified = true) => set((state) => ({
+    content,
+    isModified: markModified,
+    contentRevision: state.contentRevision + 1,
+  })),
   setViewMode: (viewMode) => set((state) => ({
     viewMode,
     content: state.contentReader?.() ?? state.content,
