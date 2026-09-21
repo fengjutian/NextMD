@@ -24,11 +24,15 @@ interface MdEditorProps {
 }
 
 export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
-  const { content, setContent, focusMode, typewriterMode } = useEditorStore();
+  const content = useEditorStore((state) => state.content);
+  const setContent = useEditorStore((state) => state.setContent);
+  const focusMode = useEditorStore((state) => state.focusMode);
+  const typewriterMode = useEditorStore((state) => state.typewriterMode);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const wysiwygScrollRef = useRef<HTMLDivElement>(null);
 
   const syncingRef = useRef(false);
+  const updateTimerRef = useRef<number | null>(null);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ codeBlock: { HTMLAttributes: { class: 'code-block' } } }),
@@ -48,11 +52,27 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     contentType: 'markdown',
     editorProps: { attributes: { class: 'tiptap editor-area' } },
     onUpdate: ({ editor }) => {
-      const md = editor.getMarkdown();
       if (syncingRef.current) return;
-      setContent(md);
+      if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
+      updateTimerRef.current = window.setTimeout(() => {
+        updateTimerRef.current = null;
+        setContent(editor.getMarkdown());
+      }, 60);
     },
   });
+
+  useEffect(() => {
+    if (!editor || mode !== 'wysiwyg') return;
+    useEditorStore.getState().registerContentReader(() => editor.getMarkdown());
+    return () => {
+      if (updateTimerRef.current) {
+        window.clearTimeout(updateTimerRef.current);
+        updateTimerRef.current = null;
+        setContent(editor.getMarkdown());
+      }
+      useEditorStore.getState().registerContentReader(null);
+    };
+  }, [editor, mode, setContent]);
 
   useEffect(() => {
     if (mode !== 'wysiwyg' || !editor || !onEditorReady) return;

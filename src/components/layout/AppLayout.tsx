@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { Titlebar } from './Titlebar';
 import { Sidebar } from './Sidebar';
@@ -6,12 +6,13 @@ import { StatusBar } from './StatusBar';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ToastContainer } from './ToastContainer';
 import { MdEditor } from '../editor/MdEditor';
-import { MdPreview } from '../editor/MdPreview';
 import { FindReplace } from '../editor/FindReplace';
 import { AIPanel } from '../ai/AIPanel';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useDocumentLifecycle } from '../../hooks/useDocumentLifecycle';
+
+const MdPreview = lazy(() => import('../editor/MdPreview').then((module) => ({ default: module.MdPreview })));
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -50,7 +51,9 @@ export function AppLayout() {
                     <div className="flex-1 border-r border-[var(--border-subtle)] overflow-hidden">
                       <MdEditor mode="source" />
                     </div>
-                    <div className="flex-1 overflow-hidden"><MdPreview /></div>
+                    <div className="flex-1 overflow-hidden">
+                      <Suspense fallback={<div className="h-full bg-[var(--bg-preview)]" />}><MdPreview /></Suspense>
+                    </div>
                   </>
                 ) : (
                   <div className="flex-1 overflow-hidden">

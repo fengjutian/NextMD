@@ -53,7 +53,7 @@ export async function saveDocument(saveAs = false): Promise<boolean> {
   try {
     const file = useFileStore.getState().currentFile;
     if (!file || documentEpoch !== requestedEpoch) return false;
-    const content = useEditorStore.getState().content;
+    const content = useEditorStore.getState().getCurrentContent();
     const result = saveAs
       ? await saveFileAs(file.name, content)
       : await saveFile(file.name, file.path, content);
@@ -61,7 +61,9 @@ export async function saveDocument(saveAs = false): Promise<boolean> {
     const files = useFileStore.getState();
     files.setCurrentFile({ name: result.name, path: result.path });
     files.addRecentFile(result.name, result.path);
-    if (useEditorStore.getState().content === content) useEditorStore.getState().markSaved();
+    if (useEditorStore.getState().getCurrentContent() === content) {
+      useEditorStore.getState().setContent(content, false);
+    }
     return true;
   } finally {
     release();

@@ -14,7 +14,9 @@ interface Props {
 }
 
 export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Props) {
-  const { content, setContent, viewMode } = useEditorStore();
+  const content = useEditorStore((state) => state.content);
+  const setContent = useEditorStore((state) => state.setContent);
+  const viewMode = useEditorStore((state) => state.viewMode);
   const [query, setQuery] = useState('');
   const [replacement, setReplacement] = useState('');
   const [active, setActive] = useState(-1);

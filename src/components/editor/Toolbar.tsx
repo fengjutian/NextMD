@@ -14,8 +14,9 @@ import { cn } from '../../lib/utils';
 import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
 
 export function Toolbar({ sourceTextareaRef }: { sourceTextareaRef: RefObject<HTMLTextAreaElement | null> }) {
-  const { viewMode, content, setContent } = useEditorStore();
-  const { isPanelOpen, togglePanel } = useAIStore();
+  const viewMode = useEditorStore((state) => state.viewMode);
+  const isPanelOpen = useAIStore((state) => state.isPanelOpen);
+  const togglePanel = useAIStore((state) => state.togglePanel);
   const editor = useContext(EditorContext);
   const isWysiwyg = viewMode === 'wysiwyg' && !!editor;
 
@@ -29,9 +30,13 @@ export function Toolbar({ sourceTextareaRef }: { sourceTextareaRef: RefObject<HT
     const active = activeName ? isActive(activeName, activeAttrs) : false;
     return (
       <button
-        onClick={() => isWysiwyg && cmd && editor
-          ? runEditorCommand(editor, cmd)
-          : insertMarkdownSyntax(sourceTextareaRef.current, content, srcPrefix || '', srcSuffix || '', setContent)}
+        onClick={() => {
+          if (isWysiwyg && cmd && editor) runEditorCommand(editor, cmd);
+          else {
+            const state = useEditorStore.getState();
+            insertMarkdownSyntax(sourceTextareaRef.current, state.content, srcPrefix || '', srcSuffix || '', state.setContent);
+          }
+        }}
         title={label}
         className={cn(
           'w-8 h-8 flex items-center justify-center rounded-lg shrink-0 transition-colors',
