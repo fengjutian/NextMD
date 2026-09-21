@@ -54,7 +54,7 @@ export function Toolbar({ sourceEditorRef }: { sourceEditorRef: RefObject<Source
   return (
     <>
       {isWysiwyg && (
-        <BubbleMenu editor={editor!}>
+        <BubbleMenu editor={editor!} pluginKey="text-format-menu">
           <div className="flex items-center gap-0.5 px-1.5 py-1 rounded-xl bg-[var(--bg-card)] shadow-[var(--shadow-lg)] border border-[var(--border-subtle)]">
             <BubbleBtn editor={editor!} cmd="bold" icon={<Bold size={14} />} active="bold" />
             <BubbleBtn editor={editor!} cmd="italic" icon={<Italic size={14} />} active="italic" />
@@ -67,6 +67,31 @@ export function Toolbar({ sourceEditorRef }: { sourceEditorRef: RefObject<Source
             <div className="w-px h-4 bg-[var(--border-subtle)] mx-0.5" />
             <BubbleBtn editor={editor!} cmd="quote" icon={<Quote size={14} />} active="blockquote" />
             <BubbleBtn editor={editor!} cmd="link" icon={<Link size={14} />} active="link" link />
+          </div>
+        </BubbleMenu>
+      )}
+
+      {isWysiwyg && (
+        <BubbleMenu
+          editor={editor!}
+          pluginKey="table-actions-menu"
+          shouldShow={({ editor: currentEditor }) => currentEditor.isActive('table')}
+          options={{ placement: 'top' }}
+        >
+          <div className="flex items-center gap-1 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-1 shadow-[var(--shadow-lg)]">
+            <button onClick={() => editor!.chain().focus().deleteRow().run()}
+              className="rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]">
+              删除行
+            </button>
+            <button onClick={() => editor!.chain().focus().deleteColumn().run()}
+              className="rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]">
+              删除列
+            </button>
+            <div className="h-5 w-px bg-[var(--border-subtle)]" />
+            <button onClick={() => editor!.chain().focus().deleteTable().run()}
+              className="rounded-lg px-2.5 py-1.5 text-xs text-red-500 hover:bg-red-500/10">
+              删除表格
+            </button>
           </div>
         </BubbleMenu>
       )}

@@ -8,6 +8,7 @@ export default defineConfig({
   // Relative base path for Tauri webview compatibility
   base: '',
   server: {
+    port: 2177,
     strictPort: true,
   },
 })
