@@ -82,12 +82,12 @@ export function DesktopMenuBar() {
             type="button"
             onClick={() => setOpenMenu(openMenu === index ? null : index)}
             onPointerEnter={() => { if (openMenu !== null) setOpenMenu(index); }}
-            className={`h-full px-2 text-xs text-[var(--text-primary)] hover:bg-[var(--border-subtle)] ${openMenu === index ? 'bg-[var(--border-subtle)]' : ''}`}
+            className={`h-full px-2 text-[12px] leading-none text-[var(--text-primary)] hover:bg-[var(--border-subtle)] ${openMenu === index ? 'bg-[var(--border-subtle)]' : ''}`}
           >
             {menu.label}
           </button>
           {openMenu === index && (
-            <div className="absolute left-0 top-full z-[120] min-w-48 rounded-b-lg border border-[var(--border-default)] bg-[var(--bg-card)] p-1 shadow-[var(--shadow-lg)]">
+            <div className="absolute left-0 top-[calc(100%+1px)] z-[120] min-w-48 rounded-lg border border-[var(--border-default)] bg-[var(--bg-card)] p-1.5 shadow-[var(--shadow-lg)]">
               {menu.items.map((item, itemIndex) => item.separator ? (
                 <div key={itemIndex} className="my-1 border-t border-[var(--border-subtle)]" />
               ) : (

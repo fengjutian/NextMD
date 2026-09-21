@@ -71,7 +71,7 @@ export function Toolbar({ sourceEditorRef }: { sourceEditorRef: RefObject<Source
         </BubbleMenu>
       )}
 
-      <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] glass">
+      <div className="flex items-center gap-0.5 h-10 px-3 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-editor)]">
         {/* Left spacer */}
         <div className="flex-1" />
 

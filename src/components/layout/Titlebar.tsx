@@ -24,7 +24,7 @@ function TauriTitlebar() {
   };
 
   return (
-    <div className="flex items-center justify-between h-9 px-3 glass shrink-0 titlebar-drag border-b border-[var(--border-subtle)]">
+    <div className="relative z-[100] flex items-center justify-between h-9 px-3 glass shrink-0 overflow-visible titlebar-drag border-b border-[var(--border-subtle)]">
       <div className="flex h-full items-center gap-2 text-xs text-[var(--text-secondary)] pl-2 titlebar-no-drag">
         <button
           onClick={closeDocument}
