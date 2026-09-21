@@ -7,6 +7,7 @@ interface EditorState {
   viewMode: ViewMode;
   isModified: boolean;
   focusMode: boolean;
+  typewriterMode: boolean;
   /** Callback registered by MdEditor for inserting markdown syntax */
   insertMarkdown: ((prefix: string, suffix?: string) => void) | null;
 
@@ -14,6 +15,7 @@ interface EditorState {
   setViewMode: (mode: ViewMode) => void;
   markSaved: () => void;
   toggleFocusMode: () => void;
+  toggleTypewriterMode: () => void;
   registerInsertMarkdown: (fn: ((prefix: string, suffix?: string) => void) | null) => void;
 }
 
@@ -22,11 +24,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   viewMode: 'wysiwyg',
   isModified: false,
   focusMode: false,
+  typewriterMode: false,
   insertMarkdown: null,
 
   setContent: (content, markModified = true) => set({ content, isModified: markModified }),
   setViewMode: (viewMode) => set({ viewMode }),
   markSaved: () => set({ isModified: false }),
   toggleFocusMode: () => set((state) => ({ focusMode: !state.focusMode })),
+  toggleTypewriterMode: () => set((state) => ({ typewriterMode: !state.typewriterMode })),
   registerInsertMarkdown: (fn) => set({ insertMarkdown: fn }),
 }));

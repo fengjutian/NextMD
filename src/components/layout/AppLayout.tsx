@@ -74,6 +74,10 @@ export function AppLayout() {
         e.preventDefault();
         useEditorStore.getState().toggleFocusMode();
       }
+      if (currentFile && e.key === 'F9') {
+        e.preventDefault();
+        useEditorStore.getState().toggleTypewriterMode();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);

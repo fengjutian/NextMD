@@ -1,4 +1,4 @@
-import { Eye, Braces, Columns2, Focus } from 'lucide-react';
+import { Eye, Braces, Columns2, Focus, AlignCenterVertical } from 'lucide-react';
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { AISettings } from '../ai/AISettings';
 import { cn } from '../../lib/utils';
@@ -10,7 +10,7 @@ const MODES: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 ];
 
 export function StatusBar() {
-  const { viewMode, setViewMode, isModified, content, focusMode, toggleFocusMode } = useEditorStore();
+  const { viewMode, setViewMode, isModified, content, focusMode, toggleFocusMode, typewriterMode, toggleTypewriterMode } = useEditorStore();
   const wordCount = content ? content.split(/\s+/).filter(Boolean).length : 0;
   const lineCount = content ? content.split('\n').length : 0;
 
@@ -35,6 +35,10 @@ export function StatusBar() {
         <button onClick={toggleFocusMode} title="专注模式 (F8，仅所见即所得)" aria-label="切换专注模式"
           className={cn('flex items-center gap-1 rounded px-1 py-0.5', focusMode && viewMode === 'wysiwyg' ? 'text-[var(--accent)]' : 'hover:text-[var(--text-primary)]')}>
           <Focus size={12} /><span>专注</span>
+        </button>
+        <button onClick={toggleTypewriterMode} title="打字机模式 (F9，仅所见即所得)" aria-label="切换打字机模式"
+          className={cn('flex items-center gap-1 rounded px-1 py-0.5', typewriterMode && viewMode === 'wysiwyg' ? 'text-[var(--accent)]' : 'hover:text-[var(--text-primary)]')}>
+          <AlignCenterVertical size={12} /><span>打字机</span>
         </button>
         <span>字数 {wordCount}</span>
         <span>行 {lineCount}</span>

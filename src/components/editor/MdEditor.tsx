@@ -23,8 +23,9 @@ interface MdEditorProps {
 }
 
 export function MdEditor({ mode }: MdEditorProps) {
-  const { content, setContent, focusMode } = useEditorStore();
+  const { content, setContent, focusMode, typewriterMode } = useEditorStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const wysiwygScrollRef = useRef<HTMLDivElement>(null);
 
   const syncingRef = useRef(false);
   const editor = useEditor({
@@ -99,6 +100,30 @@ export function MdEditor({ mode }: MdEditorProps) {
     };
   }, [editor, focusMode, mode]);
 
+  useEffect(() => {
+    if (!editor || mode !== 'wysiwyg' || !typewriterMode) return;
+    const scrollArea = wysiwygScrollRef.current;
+    if (!scrollArea) return;
+    let frame = 0;
+    const centerCaret = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (!editor.isFocused) return;
+        const caret = editor.view.coordsAtPos(editor.state.selection.from);
+        const viewport = scrollArea.getBoundingClientRect();
+        scrollArea.scrollTop += (caret.top + caret.bottom) / 2 - (viewport.top + viewport.bottom) / 2;
+      });
+    };
+    centerCaret();
+    editor.on('transaction', centerCaret);
+    editor.on('focus', centerCaret);
+    return () => {
+      cancelAnimationFrame(frame);
+      editor.off('transaction', centerCaret);
+      editor.off('focus', centerCaret);
+    };
+  }, [editor, mode, typewriterMode]);
+
   return (
     <EditorContext.Provider value={editor}>
       <div className="flex flex-col h-full">
@@ -120,7 +145,7 @@ export function MdEditor({ mode }: MdEditorProps) {
             />
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto bg-[var(--bg-editor)]">
+          <div ref={wysiwygScrollRef} className={cn('flex-1 overflow-y-auto bg-[var(--bg-editor)]', typewriterMode && 'typewriter-mode')}>
             <EditorContent editor={editor} className="h-full" />
           </div>
         )}

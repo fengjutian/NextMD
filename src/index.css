@@ -315,6 +315,12 @@ html, body, #root {
   opacity: 1;
 }
 
+.typewriter-mode .tiptap {
+  min-height: calc(100% + 70vh);
+  padding-top: 35vh;
+  padding-bottom: 35vh;
+}
+
 /* ============================================
    Markdown Preview — Dark mode prose overrides
    ============================================ */
@@ -359,4 +365,3 @@ html, body, #root {
 [data-theme='dark'] .prose strong {
   color: var(--text-primary);
 }
-
