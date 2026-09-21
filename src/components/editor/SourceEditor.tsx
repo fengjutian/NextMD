@@ -5,7 +5,7 @@ import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirro
 import { bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
 import { markdown } from '@codemirror/lang-markdown';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { SOURCE_EDITOR_NAVIGATE, type SourceEditorNavigation } from '../../lib/sourceEditorEvents';
+import { SOURCE_EDITOR_NAVIGATE, SOURCE_EDITOR_VIEWPORT, type SourceEditorNavigation } from '../../lib/sourceEditorEvents';
 
 export interface SourceEditorHandle {
   getContent: () => string;
@@ -73,6 +73,9 @@ export const SourceEditor = forwardRef<SourceEditorHandle, Props>(function Sourc
           EditorView.lineWrapping, highlightActiveLine(),
           keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
           EditorView.updateListener.of((update) => {
+            if (update.viewportChanged || update.geometryChanged) {
+              window.dispatchEvent(new CustomEvent(SOURCE_EDITOR_VIEWPORT, { detail: { offset: update.view.viewport.from } }));
+            }
             if (!update.docChanged || externalUpdateRef.current) return;
             if (changeTimerRef.current) window.clearTimeout(changeTimerRef.current);
             changeTimerRef.current = window.setTimeout(() => {
