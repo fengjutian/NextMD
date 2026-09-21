@@ -19,9 +19,9 @@ import { SearchHighlight } from '../../lib/searchHighlight';
 import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
 import { MarkdownCodeBlock } from './MarkdownCodeBlock';
 import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
-import { repairCjkStrongMarks } from '../../lib/markdownCompatibility';
 import { enableTableDrag } from '../../lib/tableDrag';
 import { ResizableTableRow } from '../../lib/resizableTableRow';
+import { CjkBold } from './CjkBold';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -40,7 +40,8 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const updateTimerRef = useRef<number | null>(null);
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ codeBlock: false }),
+      StarterKit.configure({ codeBlock: false, bold: false }),
+      CjkBold,
       MarkdownCodeBlock,
       Markdown,
       Placeholder.configure({ placeholder: '开始写作...' }),
@@ -65,11 +66,6 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
         updateTimerRef.current = null;
         setContent(editor.getMarkdown());
       }, 60);
-    },
-    onCreate: ({ editor }) => {
-      const current = editor.getJSON();
-      const repaired = repairCjkStrongMarks(current);
-      if (JSON.stringify(repaired) !== JSON.stringify(current)) editor.commands.setContent(repaired);
     },
   });
 
@@ -115,9 +111,6 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
         syncingRef.current = true;
         try {
           editor.commands.setContent(content, { contentType: 'markdown' });
-          const current = editor.getJSON();
-          const repaired = repairCjkStrongMarks(current);
-          if (JSON.stringify(repaired) !== JSON.stringify(current)) editor.commands.setContent(repaired);
         } finally {
           syncingRef.current = false;
         }
