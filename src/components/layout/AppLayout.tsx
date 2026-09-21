@@ -13,9 +13,12 @@ import { saveFile, saveFileAs } from '../../lib/fileOps';
 import { isTauri } from '../../lib/env';
 import { confirmDiscardChanges } from '../../lib/confirmDiscard';
 import { openFileByPath } from '../../lib/fileOps';
+import { FindReplace } from '../editor/FindReplace';
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [findOpen, setFindOpen] = useState(false);
+  const [replaceOpen, setReplaceOpen] = useState(false);
   const { currentFile, setCurrentFile, addRecentFile } = useFileStore();
   const { viewMode, content, isModified, markSaved } = useEditorStore();
 
@@ -56,10 +59,21 @@ export function AppLayout() {
           handleSave();
         }
       }
+      if (currentFile && mod && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setFindOpen(true);
+        setReplaceOpen(false);
+      }
+      if (currentFile && mod && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        setFindOpen(true);
+        setReplaceOpen(true);
+      }
+      if (e.key === 'Escape' && findOpen) setFindOpen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, handleSaveAs]);
+  }, [handleSave, handleSaveAs, currentFile, findOpen]);
 
   // Unsaved changes warning
   useEffect(() => {
@@ -145,7 +159,11 @@ export function AppLayout() {
         <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
         {/* Editor area */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <FindReplace open={findOpen} replaceOpen={replaceOpen}
+            onOpen={(replace) => { setFindOpen(true); setReplaceOpen(replace); }}
+            onClose={() => setFindOpen(false)} />
+          <div className="flex-1 flex overflow-hidden">
           {/* WYSIWYG or Source */}
           {(viewMode === 'wysiwyg' || viewMode === 'source') && (
             <div className="flex-1 overflow-hidden">
@@ -164,6 +182,7 @@ export function AppLayout() {
               </div>
             </>
           )}
+          </div>
         </div>
 
         {/* AI Panel */}
