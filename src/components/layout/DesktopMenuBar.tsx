@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { closeDocument, newDocument, openDocument, saveDocument } from '../../lib/documentActions';
+import { closeDocument, newDocument, openDocument, refreshCurrentDocument, saveDocument } from '../../lib/documentActions';
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { useThemeStore, type ThemeMode } from '../../stores/themeStore';
 import { useToastStore } from '../../stores/toastStore';
 import type { EditorCommand } from '../../lib/editorCommands';
+import { useFileStore } from '../../stores/fileStore';
 
 interface MenuItem {
   label?: string;
   shortcut?: string;
   action?: () => void;
   checked?: boolean;
+  disabled?: boolean;
   separator?: boolean;
 }
 
@@ -24,6 +26,7 @@ export function DesktopMenuBar() {
   const setViewMode = useEditorStore((state) => state.setViewMode);
   const viewMode = useEditorStore((state) => state.viewMode);
   const theme = useThemeStore((state) => state.theme);
+  const currentPath = useFileStore((state) => state.currentFile?.path);
   const setTheme = useThemeStore((state) => state.setTheme);
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export function DesktopMenuBar() {
     { label: <>文件(<u>F</u>)</>, items: [
       { label: '新建', shortcut: 'Ctrl+N', action: () => { newDocument(); } },
       { label: '打开…', shortcut: 'Ctrl+O', action: () => { void openDocument(); } },
+      { label: '刷新当前文档', shortcut: 'F5', disabled: !currentPath, action: () => { void refreshCurrentDocument(); } },
       { separator: true },
       { label: '保存', shortcut: 'Ctrl+S', action: () => { void saveDocument(); } },
       { label: '另存为…', shortcut: 'Ctrl+Shift+S', action: () => { void saveDocument(true); } },
@@ -94,8 +98,9 @@ export function DesktopMenuBar() {
                 <button
                   key={itemIndex}
                   type="button"
+                  disabled={item.disabled}
                   onClick={() => { setOpenMenu(null); item.action?.(); }}
-                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs hover:bg-[var(--border-subtle)]"
+                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs hover:bg-[var(--border-subtle)] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
                 >
                   <span className="w-3 text-[var(--accent)]">{item.checked ? '✓' : ''}</span>
                   <span className="flex-1 whitespace-nowrap">{item.label}</span>

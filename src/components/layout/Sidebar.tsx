@@ -10,7 +10,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  const currentFile = useFileStore((state) => state.currentFile);
   const recentFiles = useFileStore((state) => state.recentFiles);
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);

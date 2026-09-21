@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { useEditorStore } from '../stores/editorStore';
 import { useFileStore } from '../stores/fileStore';
-import { loadDocument, saveDocument } from '../lib/documentActions';
+import { loadDocument, refreshCurrentDocument, saveDocument } from '../lib/documentActions';
 import { openFileByPath } from '../lib/fileOps';
 import { isTauri } from '../lib/env';
 import { watch } from '@tauri-apps/plugin-fs';
@@ -34,6 +34,9 @@ export function useDocumentLifecycle({ open, close }: FindControls): void {
       } else if (hasFile && event.key === 'F9') {
         event.preventDefault();
         useEditorStore.getState().toggleTypewriterMode();
+      } else if (hasFile && event.key === 'F5') {
+        event.preventDefault();
+        void refreshCurrentDocument();
       }
     };
     window.addEventListener('keydown', handleKeyDown);

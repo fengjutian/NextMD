@@ -61,7 +61,7 @@ export function AIPanel({ editor }: { editor: Editor | null }) {
   if (!isPanelOpen) return null;
 
   return (
-    <div className="shrink-0 flex h-full" style={{ width: panelWidth }}>
+    <div className="shrink-0 flex h-full bg-[var(--bg-editor)]" style={{ width: panelWidth }}>
       {/* Drag handle */}
       <div
         className="w-1.5 shrink-0 cursor-col-resize hover:bg-[var(--accent)] hover:bg-opacity-30 transition-colors flex items-center justify-center group"
@@ -71,7 +71,7 @@ export function AIPanel({ editor }: { editor: Editor | null }) {
       </div>
 
       {/* Panel content */}
-      <div className="flex-1 flex flex-col h-full border-l border-[var(--border-subtle)] glass">
+      <div className="flex-1 flex flex-col h-full border-l border-[var(--border-subtle)] bg-[var(--bg-editor)]">
       {/* Header with thread tabs */}
       <div className="flex items-center justify-between px-4 h-10 shrink-0 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-1 overflow-x-auto flex-1 mr-2">

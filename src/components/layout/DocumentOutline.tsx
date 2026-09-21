@@ -79,7 +79,7 @@ export function DocumentOutline({ editor }: Props) {
         </button>
       ) : <>
         <div className="flex h-11 shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] px-4 text-xs font-medium text-[var(--text-secondary)]">
-          <ListTree size={14} />标题
+          <ListTree size={14} />大纲
         </div>
         <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="文档标题">
         {headings.length === 0 ? (

@@ -41,6 +41,13 @@ export async function openRecentDocument(path?: string): Promise<boolean> {
   return file ? loadDocument(file) : openDocument();
 }
 
+export async function refreshCurrentDocument(): Promise<boolean> {
+  const path = useFileStore.getState().currentFile?.path;
+  if (!path) return false;
+  const file = await openFileByPath(path);
+  return file ? loadDocument(file) : false;
+}
+
 let saveTail: Promise<void> = Promise.resolve();
 
 export async function saveDocument(saveAs = false): Promise<boolean> {
