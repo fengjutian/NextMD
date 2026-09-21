@@ -37,8 +37,19 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const wysiwygScrollRef = useRef<HTMLDivElement>(null);
 
   const syncingRef = useRef(false);
+  const hydratingRef = useRef(true);
+  const hydrationFrameRef = useRef<number | null>(null);
   const updateTimerRef = useRef<number | null>(null);
   const pendingUpdateRef = useRef<{ revision: number; content: string } | null>(null);
+  const finishHydration = () => {
+    if (hydrationFrameRef.current !== null) cancelAnimationFrame(hydrationFrameRef.current);
+    hydrationFrameRef.current = requestAnimationFrame(() => {
+      hydrationFrameRef.current = requestAnimationFrame(() => {
+        hydrationFrameRef.current = null;
+        hydratingRef.current = false;
+      });
+    });
+  };
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ codeBlock: false, bold: false }),
@@ -62,6 +73,10 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     onUpdate: ({ editor, transaction }) => {
       if (syncingRef.current) return;
       if (transaction.getMeta('nextmd:visual-only')) return;
+      if (hydratingRef.current) {
+        useEditorStore.getState().setSavedBaseline(editor.getMarkdown());
+        return;
+      }
       if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
       const revision = useEditorStore.getState().contentRevision;
       const nextContent = editor.getMarkdown();
@@ -79,6 +94,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       if (!useEditorStore.getState().isModified) {
         useEditorStore.getState().setSavedBaseline(editor.getMarkdown());
       }
+      finishHydration();
     },
   });
 
@@ -86,6 +102,10 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     if (!editor || mode !== 'wysiwyg') return;
     useEditorStore.getState().registerContentReader(() => editor.getMarkdown());
     return () => {
+      if (hydrationFrameRef.current !== null) {
+        cancelAnimationFrame(hydrationFrameRef.current);
+        hydrationFrameRef.current = null;
+      }
       if (updateTimerRef.current) {
         window.clearTimeout(updateTimerRef.current);
         updateTimerRef.current = null;
@@ -126,6 +146,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
       if (editor.getMarkdown() !== content) {
         const loadingSavedContent = !useEditorStore.getState().isModified;
+        if (loadingSavedContent) hydratingRef.current = true;
         if (updateTimerRef.current) {
           window.clearTimeout(updateTimerRef.current);
           updateTimerRef.current = null;
@@ -136,6 +157,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
           editor.commands.setContent(content, { contentType: 'markdown', emitUpdate: false });
           if (loadingSavedContent) {
             useEditorStore.getState().setSavedBaseline(editor.getMarkdown());
+            finishHydration();
           }
         } finally {
           syncingRef.current = false;
