@@ -21,7 +21,7 @@ export function AIPanel({ editor }: { editor: Editor | null }) {
 
   const activeConv = conversations.find((c: AIConversation) => c.id === activeConversationId);
   const messages = activeConv?.messages || [];
-  const { content } = useEditorStore();
+  const content = useEditorStore((state) => state.content);
 
   // Get selected text from TipTap editor (works even after focus moves to button)
   const getSelectedText = () => {

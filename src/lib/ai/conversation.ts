@@ -31,22 +31,36 @@ export async function streamToLastMessage(
   const { model, temperature } = useAIStore.getState();
   const toast = useToastStore.getState();
   let fullText = '';
+  let updateTimer: ReturnType<typeof setTimeout> | null = null;
+  const flush = () => {
+    if (updateTimer) clearTimeout(updateTimer);
+    updateTimer = null;
+    updateLastMsg(convId, fullText);
+  };
+  const scheduleUpdate = () => {
+    if (!updateTimer) updateTimer = setTimeout(flush, 50);
+  };
   try {
     for await (const chunk of client.chat(messages, { model, temperature })) {
       if (chunk.type === 'content') {
         fullText += chunk.text;
-        updateLastMsg(convId, fullText);
+        scheduleUpdate();
       } else if (chunk.type === 'done') {
-        updateLastMsg(convId, chunk.fullText);
+        fullText = chunk.fullText;
+        flush();
       } else if (chunk.type === 'error') {
-        updateLastMsg(convId, `❌ ${chunk.message}`);
+        fullText = `❌ ${chunk.message}`;
+        flush();
         toast.show('error', chunk.message);
       }
     }
   } catch (error: unknown) {
     const message = `❌ 错误: ${error instanceof Error ? error.message : String(error)}`;
-    updateLastMsg(convId, message);
+    fullText = message;
+    flush();
     toast.show('error', message.replace('❌ ', ''));
+  } finally {
+    if (updateTimer) flush();
   }
 }
 

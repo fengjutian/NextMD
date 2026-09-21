@@ -62,7 +62,8 @@ function TauriTitlebar() {
 }
 
 function BrowserHeader() {
-  const { isPanelOpen, togglePanel } = useAIStore();
+  const isPanelOpen = useAIStore((state) => state.isPanelOpen);
+  const togglePanel = useAIStore((state) => state.togglePanel);
 
   return (
     <header className="flex items-center justify-between h-10 px-4 shrink-0 border-b border-[var(--border-subtle)] glass">

@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 import { useThemeStore } from '../stores/themeStore';
 
 export function useTheme() {
-  const { theme, resolved, setTheme } = useThemeStore();
+  const theme = useThemeStore((state) => state.theme);
+  const resolved = useThemeStore((state) => state.resolved);
+  const setTheme = useThemeStore((state) => state.setTheme);
 
   // Apply data-theme attribute
   useEffect(() => {

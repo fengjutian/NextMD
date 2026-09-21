@@ -4,6 +4,8 @@ import { useToastStore } from '../../stores/toastStore';
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { AISettings } from '../ai/AISettings';
 import { cn } from '../../lib/utils';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useMemo } from 'react';
 
 const MODES: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
   { mode: 'wysiwyg', icon: <Eye size={12} />, label: '所见即所得' },
@@ -12,11 +14,18 @@ const MODES: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 ];
 
 export function StatusBar() {
-  const { viewMode, setViewMode, isModified, content, focusMode, toggleFocusMode, typewriterMode, toggleTypewriterMode } = useEditorStore();
+  const viewMode = useEditorStore((state) => state.viewMode);
+  const setViewMode = useEditorStore((state) => state.setViewMode);
+  const isModified = useEditorStore((state) => state.isModified);
+  const content = useEditorStore((state) => state.content);
+  const focusMode = useEditorStore((state) => state.focusMode);
+  const toggleFocusMode = useEditorStore((state) => state.toggleFocusMode);
+  const typewriterMode = useEditorStore((state) => state.typewriterMode);
+  const toggleTypewriterMode = useEditorStore((state) => state.toggleTypewriterMode);
   const currentFile = useFileStore((state) => state.currentFile);
   const showToast = useToastStore((state) => state.show);
-  const wordCount = content ? content.split(/\s+/).filter(Boolean).length : 0;
-  const lineCount = content ? content.split('\n').length : 0;
+  const statsContent = useDebouncedValue(content, 150);
+  const { wordCount, lineCount } = useMemo(() => countDocument(statsContent), [statsContent]);
 
   const handleExportHtml = async () => {
     if (!currentFile) return;
@@ -69,4 +78,17 @@ export function StatusBar() {
       </div>
     </div>
   );
+}
+
+function countDocument(content: string): { wordCount: number; lineCount: number } {
+  if (!content) return { wordCount: 0, lineCount: 0 };
+  let words = 0;
+  let lines = 1;
+  let insideWord = false;
+  for (const char of content) {
+    if (char === '\n') lines++;
+    if (/\s/.test(char)) insideWord = false;
+    else if (!insideWord) { words++; insideWord = true; }
+  }
+  return { wordCount: words, lineCount: lines };
 }

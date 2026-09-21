@@ -2,11 +2,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { useEditorStore } from '../../stores/editorStore';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 
 export function MdPreview() {
-  const { content } = useEditorStore();
+  const content = useEditorStore((state) => state.content);
+  const previewContent = useDebouncedValue(content, 150);
 
-  if (!content) {
+  if (!previewContent) {
     return (
       <div className="h-full flex items-center justify-center bg-[var(--bg-preview)] text-[var(--text-muted)] text-sm">
         在源码模式下编辑，此处将实时预览
@@ -78,7 +80,7 @@ export function MdPreview() {
             ),
           }}
         >
-          {content}
+          {previewContent}
         </ReactMarkdown>
       </div>
     </div>

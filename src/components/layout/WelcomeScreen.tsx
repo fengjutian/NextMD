@@ -5,7 +5,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { newDocument, openDocument, openRecentDocument } from '../../lib/documentActions';
 
 export function WelcomeScreen() {
-  const { recentFiles } = useFileStore();
+  const recentFiles = useFileStore((state) => state.recentFiles);
 
   const templates = [
     { label: '空白文档', icon: <FilePlus size={18} />, content: '' },

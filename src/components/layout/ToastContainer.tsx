@@ -14,7 +14,8 @@ const bgColors = {
 };
 
 export function ToastContainer() {
-  const { toasts, dismiss } = useToastStore();
+  const toasts = useToastStore((state) => state.toasts);
+  const dismiss = useToastStore((state) => state.dismiss);
 
   if (toasts.length === 0) return null;
 

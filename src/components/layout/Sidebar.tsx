@@ -6,6 +6,7 @@ import { useEditorStore } from '../../stores/editorStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { getOutline, type OutlineHeading } from '../../lib/outline';
 import { FileSection, OutlineSection, ThemeSwitcher } from './SidebarSections';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -13,11 +14,15 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  const { currentFile, recentFiles } = useFileStore();
-  const { content, viewMode } = useEditorStore();
-  const { theme, setTheme } = useThemeStore();
+  const currentFile = useFileStore((state) => state.currentFile);
+  const recentFiles = useFileStore((state) => state.recentFiles);
+  const content = useEditorStore((state) => state.content);
+  const viewMode = useEditorStore((state) => state.viewMode);
+  const theme = useThemeStore((state) => state.theme);
+  const setTheme = useThemeStore((state) => state.setTheme);
   const [section, setSection] = useState<'files' | 'outline'>('files');
-  const headings = currentFile && section === 'outline' ? getOutline(content) : [];
+  const outlineContent = useDebouncedValue(content, 120);
+  const headings = currentFile && section === 'outline' ? getOutline(outlineContent) : [];
 
   const jumpToHeading = (heading: OutlineHeading, index: number) => {
     if (viewMode === 'wysiwyg') {
