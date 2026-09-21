@@ -1,51 +1,83 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Editor } from '@tiptap/react';
 import { ChevronDown, ChevronUp, Replace, Search, X } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
+
+interface Match { from: number; to: number }
 
 interface Props {
   open: boolean;
   replaceOpen: boolean;
+  editor: Editor | null;
   onOpen: (replace: boolean) => void;
   onClose: () => void;
 }
 
-export function FindReplace({ open, replaceOpen, onOpen, onClose }: Props) {
-  const { content, setContent, setViewMode } = useEditorStore();
+function findMatches(content: string, query: string, positions?: number[]): Match[] {
+  if (!query) return [];
+  const matches: Match[] = [];
+  const haystack = content.toLowerCase();
+  const needle = query.toLowerCase();
+  for (let from = 0; from < content.length;) {
+    const index = haystack.indexOf(needle, from);
+    if (index < 0) break;
+    const start = positions ? positions[index] : index;
+    const end = positions ? positions[index + query.length - 1] + 1 : index + query.length;
+    if (start >= 0 && end > start) matches.push({ from: start, to: end });
+    from = index + Math.max(query.length, 1);
+  }
+  return matches;
+}
+
+function visibleText(editor: Editor): { text: string; positions: number[] } {
+  let text = '';
+  const positions: number[] = [];
+  let previousEnd = -1;
+  editor.state.doc.descendants((node, pos) => {
+    if (!node.isText || !node.text) return;
+    if (previousEnd >= 0 && pos > previousEnd) {
+      text += '\n';
+      positions.push(-1);
+    }
+    text += node.text;
+    for (let i = 0; i < node.text.length; i++) positions.push(pos + i);
+    previousEnd = pos + node.text.length;
+  });
+  return { text, positions };
+}
+
+export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Props) {
+  const { content, setContent, viewMode } = useEditorStore();
   const [query, setQuery] = useState('');
   const [replacement, setReplacement] = useState('');
   const [active, setActive] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const matches = useMemo(() => {
-    if (!query) return [];
-    const found: number[] = [];
-    const haystack = content.toLowerCase();
-    const needle = query.toLowerCase();
-    let from = 0;
-    while (from < content.length) {
-      const position = haystack.indexOf(needle, from);
-      if (position < 0) break;
-      found.push(position);
-      from = position + Math.max(needle.length, 1);
+    if (viewMode === 'wysiwyg' && editor) {
+      const visible = visibleText(editor);
+      return findMatches(visible.text, query, visible.positions);
     }
-    return found;
-  }, [content, query]);
+    return findMatches(content, query);
+  }, [content, query, viewMode, editor]);
 
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
+  useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
+  useEffect(() => { setActive(-1); }, [query, viewMode]);
 
   const showMatch = (index: number) => {
     if (!matches.length) return;
     const next = (index + matches.length) % matches.length;
     setActive(next);
-    setViewMode('source');
+    const match = matches[next];
+    if (viewMode === 'wysiwyg' && editor) {
+      editor.chain().focus().setTextSelection({ from: match.from, to: match.to }).scrollIntoView().run();
+      return;
+    }
     requestAnimationFrame(() => {
       const textarea = document.querySelector<HTMLTextAreaElement>('textarea.editor-area');
       if (!textarea) return;
-      const position = matches[next];
       textarea.focus();
-      textarea.setSelectionRange(position, position + query.length);
-      const line = content.slice(0, position).split('\n').length - 1;
+      textarea.setSelectionRange(match.from, match.to);
+      const line = content.slice(0, match.from).split('\n').length - 1;
       const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 24;
       textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
     });
@@ -53,38 +85,44 @@ export function FindReplace({ open, replaceOpen, onOpen, onClose }: Props) {
 
   const replaceCurrent = () => {
     if (!matches.length) return;
-    const index = Math.max(0, Math.min(active, matches.length - 1));
-    const position = matches[index];
-    setContent(content.slice(0, position) + replacement + content.slice(position + query.length));
+    const match = matches[Math.max(0, Math.min(active, matches.length - 1))];
+    if (viewMode === 'wysiwyg' && editor) {
+      editor.view.dispatch(editor.state.tr.insertText(replacement, match.from, match.to));
+    } else {
+      setContent(content.slice(0, match.from) + replacement + content.slice(match.to));
+    }
     setActive(-1);
   };
 
   const replaceAll = () => {
     if (!matches.length) return;
-    let next = content;
-    for (let i = matches.length - 1; i >= 0; i--) {
-      const position = matches[i];
-      next = next.slice(0, position) + replacement + next.slice(position + query.length);
+    if (viewMode === 'wysiwyg' && editor) {
+      const transaction = editor.state.tr;
+      for (let i = matches.length - 1; i >= 0; i--) {
+        transaction.insertText(replacement, matches[i].from, matches[i].to);
+      }
+      editor.view.dispatch(transaction);
+    } else {
+      let next = content;
+      for (let i = matches.length - 1; i >= 0; i--) {
+        next = next.slice(0, matches[i].from) + replacement + next.slice(matches[i].to);
+      }
+      setContent(next);
     }
-    setContent(next);
     setActive(-1);
   };
 
-  if (!open) return (
-    <div className="flex justify-end border-b border-[var(--border-subtle)] bg-[var(--bg-editor)] px-2 py-1">
-      <button onClick={() => onOpen(false)} title="查找 (Ctrl+F)" aria-label="查找" className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><Search size={15} /></button>
-    </div>
-  );
+  if (!open) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-xs">
       <Search size={15} className="text-[var(--text-muted)]" />
-      <input ref={inputRef} value={query} onChange={(event) => { setQuery(event.target.value); setActive(-1); }}
+      <input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === 'Enter') { event.preventDefault(); showMatch(active + (event.shiftKey ? -1 : 1)); }
           if (event.key === 'Escape') onClose();
         }}
-        placeholder="查找 Markdown 内容" aria-label="查找内容"
+        placeholder={viewMode === 'wysiwyg' ? '查找可见文本' : '查找 Markdown 内容'} aria-label="查找内容"
         className="min-w-32 flex-1 rounded border border-[var(--border-default)] bg-[var(--bg-editor)] px-2 py-1 text-[var(--text-primary)] outline-none" />
       <span className="min-w-12 text-center text-[var(--text-muted)]">{matches.length ? `${Math.max(0, Math.min(active + 1, matches.length))}/${matches.length}` : '0/0'}</span>
       <button onClick={() => showMatch(active - 1)} disabled={!matches.length} aria-label="上一处" title="上一处" className="disabled:opacity-40"><ChevronUp size={16} /></button>
