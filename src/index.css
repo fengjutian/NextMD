@@ -353,6 +353,49 @@ html, body, #root {
 .tiptap tbody tr:hover { background: var(--accent-muted); }
 .tiptap th:first-child, .tiptap td:first-child { min-width: 92px; }
 
+.tiptap .table-column-drag-handle,
+.tiptap .table-row-drag-handle {
+  position: relative;
+}
+.tiptap .table-column-drag-handle { cursor: grab; }
+.tiptap .table-row-drag-handle { cursor: grab; padding-left: 1.45em; }
+.tiptap .table-row-drag-handle::before {
+  content: '⋮⋮';
+  position: absolute;
+  left: 0.38em;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: -3px;
+}
+.tiptap .table-column-drag-handle::after {
+  content: '⋮⋮';
+  position: absolute;
+  left: 50%;
+  top: 1px;
+  transform: translateX(-50%) rotate(90deg);
+  color: var(--text-muted);
+  font-size: 9px;
+  letter-spacing: -3px;
+}
+.tiptap .table-dragging { opacity: 0.48; cursor: grabbing; }
+
+.tiptap.resize-cursor { cursor: col-resize; }
+.tiptap .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: -2px;
+  width: 4px;
+  z-index: 20;
+  pointer-events: none;
+  background: var(--accent);
+}
+.tiptap .tableWrapper { overflow-x: auto; padding: 2px 2px 8px; }
+.tiptap th,
+.tiptap td { position: relative; }
+
 
 /* Highlight */
 .tiptap mark {

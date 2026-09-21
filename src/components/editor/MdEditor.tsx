@@ -8,7 +8,6 @@ import TaskItem from '@tiptap/extension-task-item';
 import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import { Table } from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 
@@ -21,6 +20,8 @@ import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
 import { MarkdownCodeBlock } from './MarkdownCodeBlock';
 import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
 import { repairCjkStrongMarks } from '../../lib/markdownCompatibility';
+import { enableTableDrag } from '../../lib/tableDrag';
+import { ResizableTableRow } from '../../lib/resizableTableRow';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -48,7 +49,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       Highlight,
       Image.configure({ allowBase64: true }),
       Table.configure({ resizable: true }),
-      TableRow,
+      ResizableTableRow,
       TableCell,
       TableHeader,
       SearchHighlight,
@@ -89,6 +90,11 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     onEditorReady(editor);
     return () => onEditorReady(null);
   }, [editor, mode, onEditorReady]);
+
+  useEffect(() => {
+    if (!editor || mode !== 'wysiwyg') return;
+    return enableTableDrag(editor);
+  }, [editor, mode]);
 
   useEffect(() => {
     const runMenuCommand = (event: Event) => {
