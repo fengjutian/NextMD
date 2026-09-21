@@ -11,6 +11,7 @@ import { AIPanel } from '../ai/AIPanel';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useDocumentLifecycle } from '../../hooks/useDocumentLifecycle';
+import { DocumentOutline } from './DocumentOutline';
 
 const MdPreview = lazy(() => import('../editor/MdPreview').then((module) => ({ default: module.MdPreview })));
 
@@ -62,6 +63,7 @@ export function AppLayout() {
                 )}
               </div>
             </div>
+            <DocumentOutline editor={richEditor} />
             <AIPanel editor={richEditor} />
           </>
         )}
