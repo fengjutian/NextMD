@@ -5,7 +5,7 @@ type DragState = { kind: 'row' | 'column'; index: number; table: HTMLTableElemen
 export function enableTableDrag(editor: Editor): () => void {
   const root = editor.view.dom;
   let dragging: DragState = null;
-  let resizingRow: { pos: number; startY: number; startHeight: number } | null = null;
+  let resizingRow: { pos: number; startY: number; startHeight: number; height: number; row: HTMLTableRowElement } | null = null;
 
   const markHandles = () => {
     root.querySelectorAll('table').forEach((table) => {
@@ -91,7 +91,8 @@ export function enableTableDrag(editor: Editor): () => void {
     if (rect.bottom - event.clientY > 6) return;
     const pos = editor.view.posAtDOM(row, 0) - 1;
     if (editor.state.doc.nodeAt(pos)?.type.name !== 'tableRow') return;
-    resizingRow = { pos, startY: event.clientY, startHeight: row.getBoundingClientRect().height };
+    const startHeight = row.getBoundingClientRect().height;
+    resizingRow = { pos, startY: event.clientY, startHeight, height: startHeight, row };
     document.body.style.cursor = 'row-resize';
     document.body.style.userSelect = 'none';
     event.preventDefault();
@@ -104,13 +105,21 @@ export function enableTableDrag(editor: Editor): () => void {
       return;
     }
     const height = Math.max(32, Math.min(320, Math.round(resizingRow.startHeight + event.clientY - resizingRow.startY)));
-    const node = editor.state.doc.nodeAt(resizingRow.pos);
-    if (!node) return;
-    editor.view.dispatch(editor.state.tr.setNodeMarkup(resizingRow.pos, undefined, { ...node.attrs, rowHeight: height }));
+    resizingRow.height = height;
+    resizingRow.row.style.height = `${height}px`;
   };
   const onPointerUp = () => {
     if (!resizingRow) return;
+    const completed = resizingRow;
     resizingRow = null;
+    const node = editor.state.doc.nodeAt(completed.pos);
+    if (node?.type.name === 'tableRow') {
+      editor.view.dispatch(
+        editor.state.tr
+          .setNodeMarkup(completed.pos, undefined, { ...node.attrs, rowHeight: completed.height })
+          .setMeta('nextmd:visual-only', true),
+      );
+    }
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     root.style.cursor = '';
@@ -122,7 +131,7 @@ export function enableTableDrag(editor: Editor): () => void {
   root.addEventListener('dragover', onDragOver);
   root.addEventListener('drop', onDrop);
   root.addEventListener('dragend', onDragEnd);
-  root.addEventListener('pointerdown', onPointerDown);
+  root.addEventListener('pointerdown', onPointerDown, true);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
   editor.on('transaction', onTransaction);
@@ -131,7 +140,7 @@ export function enableTableDrag(editor: Editor): () => void {
     root.removeEventListener('dragover', onDragOver);
     root.removeEventListener('drop', onDrop);
     root.removeEventListener('dragend', onDragEnd);
-    root.removeEventListener('pointerdown', onPointerDown);
+    root.removeEventListener('pointerdown', onPointerDown, true);
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', onPointerUp);
     editor.off('transaction', onTransaction);

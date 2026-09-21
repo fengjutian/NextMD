@@ -57,8 +57,9 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     content,
     contentType: 'markdown',
     editorProps: { attributes: { class: 'tiptap editor-area' } },
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor, transaction }) => {
       if (syncingRef.current) return;
+      if (transaction.getMeta('nextmd:visual-only')) return;
       if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
       updateTimerRef.current = window.setTimeout(() => {
         updateTimerRef.current = null;
