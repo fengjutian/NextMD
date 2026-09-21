@@ -5,6 +5,8 @@ import { useFileStore } from '../stores/fileStore';
 import { loadDocument, saveDocument } from '../lib/documentActions';
 import { openFileByPath } from '../lib/fileOps';
 import { isTauri } from '../lib/env';
+import { watch } from '@tauri-apps/plugin-fs';
+import { useToastStore } from '../stores/toastStore';
 
 interface FindControls {
   open: (replace: boolean) => void;
@@ -12,6 +14,7 @@ interface FindControls {
 }
 
 export function useDocumentLifecycle({ open, close }: FindControls): void {
+  const currentPath = useFileStore((state) => state.currentFile?.path);
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const hasFile = !!useFileStore.getState().currentFile;
@@ -44,6 +47,66 @@ export function useDocumentLifecycle({ open, close }: FindControls): void {
     window.addEventListener('beforeunload', handleUnload);
     return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
+
+  useEffect(() => {
+    if (!isTauri() || !currentPath) return;
+    let cancelled = false;
+    let unwatch: (() => void) | undefined;
+    let lastDiskContent: string | null = null;
+    let activeToastId: string | null = null;
+    let reading = false;
+
+    const readCurrentFile = async () => {
+      const file = await openFileByPath(currentPath);
+      return file?.content ?? null;
+    };
+
+    void readCurrentFile().then((content) => { lastDiskContent = content; });
+    void watch(currentPath, async () => {
+      if (cancelled || reading) return;
+      reading = true;
+      try {
+        const diskContent = await readCurrentFile();
+        if (cancelled || diskContent === lastDiskContent) return;
+        lastDiskContent = diskContent;
+        const toast = useToastStore.getState();
+        if (activeToastId) toast.dismiss(activeToastId);
+
+        if (diskContent === null) {
+          activeToastId = toast.show('error', '当前文件已被移动或删除。', 0);
+          return;
+        }
+        if (diskContent === useEditorStore.getState().getCurrentContent()) return;
+
+        const modified = useEditorStore.getState().isModified;
+        activeToastId = toast.show(
+          'info',
+          modified ? '原始文件已发生变化。刷新将覆盖当前未保存内容。' : '原始文件已发生变化，是否刷新？',
+          0,
+          [{
+            label: '刷新',
+            onClick: async () => {
+              const file = await openFileByPath(currentPath);
+              if (file && useFileStore.getState().currentFile?.path === currentPath && loadDocument(file)) {
+                lastDiskContent = file.content;
+              }
+            },
+          }],
+        );
+      } finally {
+        reading = false;
+      }
+    }, { delayMs: 300 }).then((stop) => {
+      if (cancelled) stop();
+      else unwatch = stop;
+    }).catch((error: unknown) => console.error('文件变更监听失败:', error));
+
+    return () => {
+      cancelled = true;
+      unwatch?.();
+      if (activeToastId) useToastStore.getState().dismiss(activeToastId);
+    };
+  }, [currentPath]);
 
   useEffect(() => {
     if (isTauri()) {

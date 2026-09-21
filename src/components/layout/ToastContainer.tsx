@@ -29,6 +29,15 @@ export function ToastContainer() {
         >
           {icons[toast.type]}
           <span className="text-[var(--text-primary)]">{toast.message}</span>
+          {toast.actions?.map((action) => (
+            <button
+              key={action.label}
+              onClick={() => { dismiss(toast.id); void action.onClick(); }}
+              className="ml-1 rounded-md bg-[var(--accent)] px-2.5 py-1 text-xs font-medium text-[var(--accent-foreground)] hover:opacity-90"
+            >
+              {action.label}
+            </button>
+          ))}
           <button
             onClick={() => dismiss(toast.id)}
             className="ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
