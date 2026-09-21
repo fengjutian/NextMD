@@ -20,7 +20,7 @@ import { SearchHighlight } from '../../lib/searchHighlight';
 import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
 import { MarkdownCodeBlock } from './MarkdownCodeBlock';
 import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
-import { cleanRichEditorMarkdown, prepareMarkdownForRichEditor } from '../../lib/markdownCompatibility';
+import { repairCjkStrongMarks } from '../../lib/markdownCompatibility';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -53,7 +53,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       TableHeader,
       SearchHighlight,
     ],
-    content: prepareMarkdownForRichEditor(content),
+    content,
     contentType: 'markdown',
     editorProps: { attributes: { class: 'tiptap editor-area' } },
     onUpdate: ({ editor }) => {
@@ -61,19 +61,24 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
       updateTimerRef.current = window.setTimeout(() => {
         updateTimerRef.current = null;
-        setContent(cleanRichEditorMarkdown(editor.getMarkdown()));
+        setContent(editor.getMarkdown());
       }, 60);
+    },
+    onCreate: ({ editor }) => {
+      const current = editor.getJSON();
+      const repaired = repairCjkStrongMarks(current);
+      if (JSON.stringify(repaired) !== JSON.stringify(current)) editor.commands.setContent(repaired);
     },
   });
 
   useEffect(() => {
     if (!editor || mode !== 'wysiwyg') return;
-    useEditorStore.getState().registerContentReader(() => cleanRichEditorMarkdown(editor.getMarkdown()));
+    useEditorStore.getState().registerContentReader(() => editor.getMarkdown());
     return () => {
       if (updateTimerRef.current) {
         window.clearTimeout(updateTimerRef.current);
         updateTimerRef.current = null;
-        setContent(cleanRichEditorMarkdown(editor.getMarkdown()));
+        setContent(editor.getMarkdown());
       }
       useEditorStore.getState().registerContentReader(null);
     };
@@ -99,10 +104,13 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const lastContentRef = useRef(content);
   useEffect(() => {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
-      if (cleanRichEditorMarkdown(editor.getMarkdown()) !== content) {
+      if (editor.getMarkdown() !== content) {
         syncingRef.current = true;
         try {
-          editor.commands.setContent(prepareMarkdownForRichEditor(content), { contentType: 'markdown' });
+          editor.commands.setContent(content, { contentType: 'markdown' });
+          const current = editor.getJSON();
+          const repaired = repairCjkStrongMarks(current);
+          if (JSON.stringify(repaired) !== JSON.stringify(current)) editor.commands.setContent(repaired);
         } finally {
           syncingRef.current = false;
         }

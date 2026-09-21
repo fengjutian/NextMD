@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemePalette = 'paper' | 'light' | 'dark' | 'eye-care';
+export type ThemeMode = ThemePalette | 'system';
 
 interface ThemeState {
   theme: ThemeMode;
-  resolved: 'light' | 'dark';
+  resolved: ThemePalette;
 
   setTheme: (theme: ThemeMode) => void;
   _resolve: () => void;
@@ -17,8 +18,8 @@ const getSystemTheme = (): 'light' | 'dark' =>
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'system',
-      resolved: getSystemTheme(),
+      theme: 'paper',
+      resolved: 'paper',
 
       setTheme: (theme) => {
         set({ theme });
@@ -36,6 +37,7 @@ export const useThemeStore = create<ThemeState>()(
     {
       name: 'nextmd-theme',
       partialize: (state) => ({ theme: state.theme }),
+      onRehydrateStorage: () => (state) => state?._resolve(),
     }
   )
 );

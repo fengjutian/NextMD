@@ -71,7 +71,8 @@ export function DesktopMenuBar() {
       viewItem('所见即所得', 'wysiwyg'), viewItem('源码模式', 'source'), viewItem('分栏预览', 'split'),
     ] },
     { label: <>主题(<u>T</u>)</>, items: [
-      themeItem('浅色', 'light'), themeItem('深色', 'dark'), themeItem('跟随系统', 'system'),
+      themeItem('纸笺', 'paper'), themeItem('明亮', 'light'), themeItem('深色', 'dark'), themeItem('护眼', 'eye-care'),
+      { separator: true }, themeItem('跟随系统', 'system'),
     ] },
     { label: <>帮助(<u>H</u>)</>, items: [
       { label: '关于 NextMD', action: () => useToastStore.getState().show('info', 'NextMD · Markdown 编辑器') },

@@ -9,10 +9,10 @@ const storedTheme = (() => {
     const raw = localStorage.getItem('nextmd-theme');
     if (raw) {
       const parsed = JSON.parse(raw);
-      return parsed?.state?.theme || 'system';
+      return parsed?.state?.theme || 'paper';
     }
   } catch { /* ignore */ }
-  return 'system';
+  return 'paper';
 })();
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

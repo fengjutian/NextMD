@@ -1,4 +1,4 @@
-import { Clock, FileText, FolderOpen, ListTree, Monitor, Moon, Sun } from 'lucide-react';
+import { BookOpen, Clock, FileText, FolderOpen, Leaf, ListTree, Monitor, Moon, Sun } from 'lucide-react';
 import { newDocument, openDocument, openRecentDocument } from '../../lib/documentActions';
 import type { OutlineHeading } from '../../lib/outline';
 import type { ThemeMode } from '../../stores/themeStore';
@@ -42,9 +42,11 @@ export function OutlineSection({ headings, onSelect }: { headings: OutlineHeadin
 
 export function ThemeSwitcher({ theme, onChange }: { theme: ThemeMode; onChange: (theme: ThemeMode) => void }) {
   const options = [
-    { value: 'light' as const, icon: <Sun size={13} />, label: '亮色' },
-    { value: 'dark' as const, icon: <Moon size={13} />, label: '暗色' },
-    { value: 'system' as const, icon: <Monitor size={13} />, label: '自动' },
+    { value: 'paper' as const, icon: <BookOpen size={13} />, label: '纸笺' },
+    { value: 'light' as const, icon: <Sun size={13} />, label: '明亮' },
+    { value: 'dark' as const, icon: <Moon size={13} />, label: '深色' },
+    { value: 'eye-care' as const, icon: <Leaf size={13} />, label: '护眼' },
+    { value: 'system' as const, icon: <Monitor size={13} />, label: '跟随系统' },
   ];
   return <div className="px-2 py-2 border-t border-[var(--border-subtle)] shrink-0">
     <div className="flex items-center gap-0.5 p-0.5 bg-[var(--border-subtle)] rounded-lg">
