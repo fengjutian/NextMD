@@ -133,7 +133,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   return (
     <EditorContext.Provider value={editor}>
       <div className="flex flex-col h-full">
-        <Toolbar />
+        <Toolbar sourceTextareaRef={textareaRef} />
         {mode === 'source' ? (
           <div className="flex-1 overflow-hidden">
             <textarea
