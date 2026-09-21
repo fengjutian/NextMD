@@ -11,6 +11,8 @@ import { useEditorStore } from '../../stores/editorStore';
 import { ToastContainer } from './ToastContainer';
 import { saveFile, saveFileAs } from '../../lib/fileOps';
 import { isTauri } from '../../lib/env';
+import { confirmDiscardChanges } from '../../lib/confirmDiscard';
+import { openFileByPath } from '../../lib/fileOps';
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -22,9 +24,11 @@ export function AppLayout() {
     if (!currentFile) return;
     const result = await saveFile(currentFile.name, currentFile.path, content);
     if (result) {
+      if (useFileStore.getState().currentFile !== currentFile) return;
       setCurrentFile({ name: result.name, path: result.path });
       addRecentFile(result.name, result.path);
-      markSaved();
+      if (useFileStore.getState().currentFile?.path === result.path &&
+          useEditorStore.getState().content === content) markSaved();
     }
   }, [currentFile, content, setCurrentFile, addRecentFile, markSaved]);
 
@@ -32,9 +36,11 @@ export function AppLayout() {
   const handleSaveAs = useCallback(async () => {
     const result = await saveFileAs(currentFile?.name || 'untitled.md', content);
     if (result) {
+      if (useFileStore.getState().currentFile !== currentFile) return;
       setCurrentFile({ name: result.name, path: result.path });
       addRecentFile(result.name, result.path);
-      markSaved();
+      if (useFileStore.getState().currentFile?.path === result.path &&
+          useEditorStore.getState().content === content) markSaved();
     }
   }, [currentFile, content, setCurrentFile, addRecentFile, markSaved]);
 
@@ -78,9 +84,9 @@ export function AppLayout() {
           if (!paths || paths.length === 0) return;
           const path = paths[0];
           if (!/\.(md|markdown|txt|mdx)$/i.test(path)) return;
-          const { openFileByPath } = await import('../../lib/fileOps');
           const result = await openFileByPath(path);
           if (result) {
+            if (!confirmDiscardChanges()) return;
             setCurrentFile({ name: result.name, path: result.path });
             useEditorStore.getState().setContent(result.content, false);
             addRecentFile(result.name, result.path);
@@ -102,6 +108,7 @@ export function AppLayout() {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (!ext || !['md', 'markdown', 'txt', 'mdx'].includes(ext)) return;
       const content = await file.text();
+      if (!confirmDiscardChanges()) return;
       setCurrentFile({ name: file.name });
       useEditorStore.getState().setContent(content, false);
       addRecentFile(file.name);

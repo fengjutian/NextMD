@@ -24,7 +24,7 @@ export function useAI() {
       store.togglePanel();
     }
     return convId;
-  }, [store.activeConversationId, store.isPanelOpen]);
+  }, [store]);
 
   const sendMessage = useCallback(async (userMessage: string) => {
     const convId = ensureConversation();
@@ -52,9 +52,12 @@ export function useAI() {
       ...getConvMessages(convId),
     ];
 
-    await streamToLastMessage(client, messages, convId);
-    state.setGenerating(false);
-    abortRef.current = null;
+    try {
+      await streamToLastMessage(client, messages, convId);
+    } finally {
+      state.setGenerating(false);
+      abortRef.current = null;
+    }
   }, [ensureConversation]);
 
   const stopGeneration = useCallback(() => {
@@ -96,8 +99,9 @@ export function useAI() {
     if (!convId) return;
     const conv = state.conversations.find((c: AIConversation) => c.id === convId);
     if (conv) {
-      const msgs = [...conv.messages];
-      while (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs.pop();
+      const index = conv.messages.findIndex((m) => m.role === 'user' && m.content === msgContent);
+      if (index < 0) return;
+      const msgs = conv.messages.slice(0, index);
       useAIStore.setState({
         conversations: state.conversations.map((c) =>
           c.id === convId ? { ...c, messages: msgs } : c
@@ -113,10 +117,9 @@ export function useAI() {
     if (!convId) return;
     const conv = state.conversations.find((c: AIConversation) => c.id === convId);
     if (conv) {
-      const msgs = conv.messages.map((m) =>
-        m.role === 'user' && m.content === oldContent ? { ...m, content: newContent } : m
-      );
-      while (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs.pop();
+      const index = conv.messages.findIndex((m) => m.role === 'user' && m.content === oldContent);
+      if (index < 0) return;
+      const msgs = conv.messages.slice(0, index);
       useAIStore.setState({
         conversations: state.conversations.map((c) =>
           c.id === convId ? { ...c, messages: msgs } : c

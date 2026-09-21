@@ -4,12 +4,14 @@ import { zhCN } from 'date-fns/locale';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { openFile, openFileByPath } from '../../lib/fileOps';
+import { confirmDiscardChanges } from '../../lib/confirmDiscard';
 
 export function WelcomeScreen() {
   const { recentFiles, setCurrentFile, addRecentFile } = useFileStore();
   const { setContent } = useEditorStore();
 
   const handleNewFile = () => {
+    if (!confirmDiscardChanges()) return;
     setCurrentFile({ name: '未命名.md' });
     setContent('', false);
     addRecentFile('未命名.md', undefined);
@@ -18,6 +20,7 @@ export function WelcomeScreen() {
   const handleOpenFile = async () => {
     const result = await openFile();
     if (!result) return;
+    if (!confirmDiscardChanges()) return;
     setCurrentFile({ name: result.name, path: result.path });
     setContent(result.content, false);
     addRecentFile(result.name, result.path);
@@ -26,6 +29,7 @@ export function WelcomeScreen() {
   const handleOpenRecentFile = async (filePath?: string) => {
     const result = filePath ? await openFileByPath(filePath) : null;
     if (result) {
+      if (!confirmDiscardChanges()) return;
       setCurrentFile({ name: result.name, path: result.path });
       setContent(result.content, false);
       addRecentFile(result.name, result.path);
@@ -92,6 +96,7 @@ export function WelcomeScreen() {
               <button
                 key={t.label}
                 onClick={() => {
+                  if (!confirmDiscardChanges()) return;
                   setCurrentFile({ name: '未命名.md' });
                   setContent(t.content, false);
                   addRecentFile('未命名.md', undefined);

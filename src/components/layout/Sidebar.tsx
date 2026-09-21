@@ -4,6 +4,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { openFile, openFileByPath } from '../../lib/fileOps';
+import { confirmDiscardChanges } from '../../lib/confirmDiscard';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -18,6 +19,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const handleOpenFile = async () => {
     const result = await openFile();
     if (!result) return;
+    if (!confirmDiscardChanges()) return;
     setCurrentFile({ name: result.name, path: result.path });
     setContent(result.content, false);
     addRecentFile(result.name, result.path);
@@ -26,6 +28,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const handleOpenRecentFile = async (filePath?: string) => {
     const result = filePath ? await openFileByPath(filePath) : null;
     if (result) {
+      if (!confirmDiscardChanges()) return;
       setCurrentFile({ name: result.name, path: result.path });
       setContent(result.content, false);
       addRecentFile(result.name, result.path);
@@ -35,6 +38,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   };
 
   const handleNewFile = () => {
+    if (!confirmDiscardChanges()) return;
     setCurrentFile({ name: '未命名.md' });
     setContent('', false);
     addRecentFile('未命名.md', undefined);
