@@ -23,7 +23,7 @@ interface MdEditorProps {
 }
 
 export function MdEditor({ mode }: MdEditorProps) {
-  const { content, setContent } = useEditorStore();
+  const { content, setContent, focusMode } = useEditorStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const syncingRef = useRef(false);
@@ -72,6 +72,32 @@ export function MdEditor({ mode }: MdEditorProps) {
       textareaRef.current.focus();
     }
   }, [mode]);
+
+  useEffect(() => {
+    if (!editor || mode !== 'wysiwyg') return;
+    const root = editor.view.dom;
+    if (!focusMode) {
+      root.classList.remove('focus-mode');
+      root.querySelector('[data-focus-active]')?.removeAttribute('data-focus-active');
+      return;
+    }
+    root.classList.add('focus-mode');
+    const updateActiveBlock = () => {
+      root.querySelector('[data-focus-active]')?.removeAttribute('data-focus-active');
+      let node: Node | null = editor.view.domAtPos(editor.state.selection.from).node;
+      if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+      if (node === root) node = root.firstChild;
+      while (node && node.parentNode !== root) node = node.parentNode;
+      if (node instanceof HTMLElement) node.setAttribute('data-focus-active', '');
+    };
+    updateActiveBlock();
+    editor.on('transaction', updateActiveBlock);
+    return () => {
+      editor.off('transaction', updateActiveBlock);
+      root.classList.remove('focus-mode');
+      root.querySelector('[data-focus-active]')?.removeAttribute('data-focus-active');
+    };
+  }, [editor, focusMode, mode]);
 
   return (
     <EditorContext.Provider value={editor}>

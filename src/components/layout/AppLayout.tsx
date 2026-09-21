@@ -70,6 +70,10 @@ export function AppLayout() {
         setReplaceOpen(true);
       }
       if (e.key === 'Escape' && findOpen) setFindOpen(false);
+      if (currentFile && e.key === 'F8') {
+        e.preventDefault();
+        useEditorStore.getState().toggleFocusMode();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
