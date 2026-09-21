@@ -5,6 +5,7 @@ import { isTauri } from '../../lib/env';
 import { useAIStore } from '../../stores/aiStore';
 import { confirmDiscardChanges } from '../../lib/confirmDiscard';
 import { closeDocument } from '../../lib/documentActions';
+import { DesktopMenuBar } from './DesktopMenuBar';
 
 export function Titlebar() {
   if (!isTauri()) {
@@ -24,7 +25,7 @@ function TauriTitlebar() {
 
   return (
     <div className="flex items-center justify-between h-9 px-3 glass shrink-0 titlebar-drag border-b border-[var(--border-subtle)]">
-      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pl-2 titlebar-no-drag">
+      <div className="flex h-full items-center gap-2 text-xs text-[var(--text-secondary)] pl-2 titlebar-no-drag">
         <button
           onClick={closeDocument}
           className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
@@ -33,6 +34,7 @@ function TauriTitlebar() {
           <Home size={13} />
         </button>
         NextMD
+        <DesktopMenuBar />
       </div>
       <div className="flex items-center gap-1 titlebar-no-drag">
         <button
