@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/react';
 import { ChevronDown, ChevronUp, Replace, Search, X } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
 import { findMatches, findEditorMatches } from '../../lib/editorSearch';
+import { updateSearchHighlights } from '../../lib/searchHighlight';
 
 interface Props {
   open: boolean;
@@ -27,6 +28,11 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
 
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
   useEffect(() => { setActive(-1); }, [query, viewMode]);
+  useEffect(() => {
+    if (!editor) return;
+    updateSearchHighlights(editor, open && viewMode === 'wysiwyg' ? matches : [], active);
+    return () => updateSearchHighlights(editor, [], -1);
+  }, [active, editor, matches, open, viewMode]);
 
   const showMatch = (index: number) => {
     if (!matches.length) return;
@@ -34,17 +40,21 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
     setActive(next);
     const match = matches[next];
     if (viewMode === 'wysiwyg' && editor) {
-      editor.chain().focus().setTextSelection({ from: match.from, to: match.to }).scrollIntoView().run();
+      updateSearchHighlights(editor, matches, next);
+      requestAnimationFrame(() => {
+        editor.view.dom.querySelector('.search-match-active')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        inputRef.current?.focus();
+      });
       return;
     }
     requestAnimationFrame(() => {
       const textarea = document.querySelector<HTMLTextAreaElement>('textarea.editor-area');
       if (!textarea) return;
-      textarea.focus();
       textarea.setSelectionRange(match.from, match.to);
       const line = content.slice(0, match.from).split('\n').length - 1;
       const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 24;
       textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
+      inputRef.current?.focus();
     });
   };
 

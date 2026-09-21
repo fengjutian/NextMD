@@ -306,6 +306,15 @@ html, body, #root {
   background: var(--accent-muted);
 }
 
+.tiptap .search-match {
+  background: rgba(255, 203, 71, 0.45);
+  border-radius: 2px;
+}
+.tiptap .search-match-active {
+  background: #ffbd2e;
+  box-shadow: 0 0 0 1px rgba(166, 105, 0, 0.35);
+}
+
 /* Keep the current writing block prominent in focus mode. */
 .tiptap.focus-mode > * {
   opacity: 0.28;

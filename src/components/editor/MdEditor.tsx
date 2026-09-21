@@ -16,6 +16,7 @@ import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { Toolbar } from './Toolbar';
 import { cn } from '../../lib/utils';
 import { EditorContext } from './EditorContext';
+import { SearchHighlight } from '../../lib/searchHighlight';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -41,6 +42,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
       TableRow,
       TableCell,
       TableHeader,
+      SearchHighlight,
     ],
     content,
     contentType: 'markdown',
