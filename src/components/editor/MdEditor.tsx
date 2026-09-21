@@ -17,6 +17,7 @@ import { Toolbar } from './Toolbar';
 import { cn } from '../../lib/utils';
 import { EditorContext } from './EditorContext';
 import { SearchHighlight } from '../../lib/searchHighlight';
+import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -28,7 +29,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const setContent = useEditorStore((state) => state.setContent);
   const focusMode = useEditorStore((state) => state.focusMode);
   const typewriterMode = useEditorStore((state) => state.typewriterMode);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const sourceEditorRef = useRef<SourceEditorHandle>(null);
   const wysiwygScrollRef = useRef<HTMLDivElement>(null);
 
   const syncingRef = useRef(false);
@@ -97,12 +98,6 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   }, [content, editor, mode]);
 
   useEffect(() => {
-    if (mode === 'source' && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [mode]);
-
-  useEffect(() => {
     if (!editor || mode !== 'wysiwyg') return;
     const root = editor.view.dom;
     if (!focusMode) {
@@ -155,22 +150,11 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   return (
     <EditorContext.Provider value={editor}>
       <div className="flex flex-col h-full">
-        <Toolbar sourceTextareaRef={textareaRef} />
+        <Toolbar sourceEditorRef={sourceEditorRef} />
         {mode === 'source' ? (
           <div className="flex-1 overflow-hidden">
-            <textarea
-              ref={textareaRef}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className={cn(
-                'w-full h-full resize-none outline-none border-none px-8 py-6',
-                'font-mono text-sm leading-relaxed',
-                'bg-[var(--bg-editor)] text-[var(--text-primary)]',
-                'editor-area'
-              )}
-              placeholder="开始写作..."
-              spellCheck={false}
-            />
+            <SourceEditor ref={sourceEditorRef} content={content} onChange={setContent}
+              onReady={(source) => useEditorStore.getState().registerContentReader(source ? source.getContent : null)} />
           </div>
         ) : (
           <div ref={wysiwygScrollRef} className={cn('flex-1 overflow-y-auto bg-[var(--bg-editor)]', typewriterMode && 'typewriter-mode')}>

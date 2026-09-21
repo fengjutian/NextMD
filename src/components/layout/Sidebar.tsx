@@ -7,6 +7,7 @@ import { useThemeStore } from '../../stores/themeStore';
 import { getOutline, type OutlineHeading } from '../../lib/outline';
 import { FileSection, OutlineSection, ThemeSwitcher } from './SidebarSections';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { navigateSourceEditor } from '../../lib/sourceEditorEvents';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -30,13 +31,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    const textarea = document.querySelector<HTMLTextAreaElement>('textarea.editor-area');
-    if (!textarea) return;
-    textarea.focus();
-    textarea.setSelectionRange(heading.offset, heading.offset);
-    const line = content.slice(0, heading.offset).split('\n').length - 1;
-    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 24;
-    textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
+    navigateSourceEditor({ from: heading.offset, focus: true });
   };
 
   return (

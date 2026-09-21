@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/react';
+import type { SourceEditorHandle } from '../components/editor/SourceEditor';
 
 export type EditorCommand =
   | 'bold' | 'italic' | 'strike' | 'code'
@@ -41,21 +42,15 @@ export function runEditorCommand(editor: Editor, command: EditorCommand): void {
 }
 
 export function insertMarkdownSyntax(
-  textarea: HTMLTextAreaElement | null,
+  sourceEditor: SourceEditorHandle | null,
   content: string,
   prefix: string,
   suffix: string,
   setContent: (content: string) => void,
 ): void {
-  if (!textarea) {
+  if (!sourceEditor) {
     setContent(content ? `${content}\n${prefix}${suffix}` : `${prefix}${suffix}`);
     return;
   }
-  const { selectionStart: start, selectionEnd: end } = textarea;
-  const selected = content.slice(start, end);
-  setContent(content.slice(0, start) + prefix + selected + suffix + content.slice(end));
-  requestAnimationFrame(() => {
-    textarea.focus();
-    textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
-  });
+  sourceEditor.insertSyntax(prefix, suffix);
 }

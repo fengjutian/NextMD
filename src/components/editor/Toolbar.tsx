@@ -12,8 +12,9 @@ import { useAIStore } from '../../stores/aiStore';
 import { EditorContext } from './EditorContext';
 import { cn } from '../../lib/utils';
 import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
+import type { SourceEditorHandle } from './SourceEditor';
 
-export function Toolbar({ sourceTextareaRef }: { sourceTextareaRef: RefObject<HTMLTextAreaElement | null> }) {
+export function Toolbar({ sourceEditorRef }: { sourceEditorRef: RefObject<SourceEditorHandle | null> }) {
   const viewMode = useEditorStore((state) => state.viewMode);
   const isPanelOpen = useAIStore((state) => state.isPanelOpen);
   const togglePanel = useAIStore((state) => state.togglePanel);
@@ -34,7 +35,7 @@ export function Toolbar({ sourceTextareaRef }: { sourceTextareaRef: RefObject<HT
           if (isWysiwyg && cmd && editor) runEditorCommand(editor, cmd);
           else {
             const state = useEditorStore.getState();
-            insertMarkdownSyntax(sourceTextareaRef.current, state.content, srcPrefix || '', srcSuffix || '', state.setContent);
+            insertMarkdownSyntax(sourceEditorRef.current, state.content, srcPrefix || '', srcSuffix || '', state.setContent);
           }
         }}
         title={label}

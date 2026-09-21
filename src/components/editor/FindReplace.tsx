@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Replace, Search, X } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
 import { findMatches, findEditorMatches } from '../../lib/editorSearch';
 import { updateSearchHighlights } from '../../lib/searchHighlight';
+import { navigateSourceEditor } from '../../lib/sourceEditorEvents';
 
 interface Props {
   open: boolean;
@@ -50,12 +51,7 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
       return;
     }
     requestAnimationFrame(() => {
-      const textarea = document.querySelector<HTMLTextAreaElement>('textarea.editor-area');
-      if (!textarea) return;
-      textarea.setSelectionRange(match.from, match.to);
-      const line = content.slice(0, match.from).split('\n').length - 1;
-      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 24;
-      textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
+      navigateSourceEditor({ from: match.from, to: match.to });
       inputRef.current?.focus();
     });
   };
