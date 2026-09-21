@@ -18,6 +18,7 @@ import { cn } from '../../lib/utils';
 import { EditorContext } from './EditorContext';
 import { SearchHighlight } from '../../lib/searchHighlight';
 import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
+import { MarkdownCodeBlock } from './MarkdownCodeBlock';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -36,7 +37,8 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const updateTimerRef = useRef<number | null>(null);
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ codeBlock: { HTMLAttributes: { class: 'code-block' } } }),
+      StarterKit.configure({ codeBlock: false }),
+      MarkdownCodeBlock,
       Markdown,
       Placeholder.configure({ placeholder: '开始写作...' }),
       TaskList,

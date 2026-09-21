@@ -25,9 +25,16 @@ export const SourceEditor = forwardRef<SourceEditorHandle, Props>(function Sourc
   const viewRef = useRef<EditorView | null>(null);
   const changeTimerRef = useRef<number | null>(null);
   const externalUpdateRef = useRef(false);
+  const contentRef = useRef(content);
+  const initialContentRef = useRef(content);
+  const onChangeRef = useRef(onChange);
+  const onReadyRef = useRef(onReady);
+  contentRef.current = content;
+  onChangeRef.current = onChange;
+  onReadyRef.current = onReady;
 
   const apiRef = useRef<SourceEditorHandle>({
-    getContent: () => viewRef.current?.state.doc.toString() ?? content,
+    getContent: () => viewRef.current?.state.doc.toString() ?? contentRef.current,
     insertSyntax: (prefix, suffix) => {
       const view = viewRef.current;
       if (!view) return;
@@ -58,7 +65,7 @@ export const SourceEditor = forwardRef<SourceEditorHandle, Props>(function Sourc
     const view = new EditorView({
       parent: hostRef.current,
       state: EditorState.create({
-        doc: content,
+        doc: initialContentRef.current,
         extensions: [
           lineNumbers(), highlightActiveLineGutter(), history(), drawSelection(), dropCursor(),
           indentOnInput(), bracketMatching(), closeBrackets(), markdown(),
@@ -70,7 +77,7 @@ export const SourceEditor = forwardRef<SourceEditorHandle, Props>(function Sourc
             if (changeTimerRef.current) window.clearTimeout(changeTimerRef.current);
             changeTimerRef.current = window.setTimeout(() => {
               changeTimerRef.current = null;
-              onChange(update.state.doc.toString());
+              onChangeRef.current(update.state.doc.toString());
             }, 40);
           }),
           EditorView.theme({
@@ -85,14 +92,14 @@ export const SourceEditor = forwardRef<SourceEditorHandle, Props>(function Sourc
       }),
     });
     viewRef.current = view;
-    onReady?.(apiRef.current);
+    onReadyRef.current?.(apiRef.current);
     view.focus();
     return () => {
       if (changeTimerRef.current) {
         window.clearTimeout(changeTimerRef.current);
-        onChange(view.state.doc.toString());
+        onChangeRef.current(view.state.doc.toString());
       }
-      onReady?.(null);
+      onReadyRef.current?.(null);
       view.destroy();
       viewRef.current = null;
     };

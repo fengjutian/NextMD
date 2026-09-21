@@ -26,7 +26,8 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
     if (viewMode === 'wysiwyg' && editor) {
       return findEditorMatches(editor, query);
     }
-    return findMatches(useEditorStore.getState().getCurrentContent(), query);
+    const latest = useEditorStore.getState().getCurrentContent();
+    return findMatches(latest === content ? content : latest, query);
   }, [content, query, viewMode, editor]);
 
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
