@@ -1,5 +1,23 @@
 @import 'tailwindcss';
 
+@layer components {
+  .settings-input {
+    @apply w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors;
+    border-color: var(--border-default);
+    background: var(--bg-window);
+    color: var(--text-primary);
+  }
+
+  .settings-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-muted);
+  }
+
+  .settings-input::placeholder {
+    color: var(--text-muted);
+  }
+}
+
 /* ============================================
    NextMD Design System — Apple Notes Inspired
    ============================================ */
