@@ -1,10 +1,12 @@
-import { FileText, FolderOpen, Clock, PanelLeftOpen, PanelLeftClose, Sun, Moon, Monitor } from 'lucide-react';
+import { FileText, FolderOpen, Clock, PanelLeftOpen, PanelLeftClose, Sun, Moon, Monitor, ListTree } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '../../lib/utils';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { openFile, openFileByPath } from '../../lib/fileOps';
 import { confirmDiscardChanges } from '../../lib/confirmDiscard';
+import { getOutline, type OutlineHeading } from '../../lib/outline';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -12,9 +14,26 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  const { recentFiles, setCurrentFile, addRecentFile } = useFileStore();
-  const { setContent } = useEditorStore();
+  const { currentFile, recentFiles, setCurrentFile, addRecentFile } = useFileStore();
+  const { content, viewMode, setContent } = useEditorStore();
   const { theme, setTheme } = useThemeStore();
+  const [section, setSection] = useState<'files' | 'outline'>('files');
+  const headings = currentFile && section === 'outline' ? getOutline(content) : [];
+
+  const jumpToHeading = (heading: OutlineHeading, index: number) => {
+    if (viewMode === 'wysiwyg') {
+      const element = document.querySelectorAll('.tiptap.editor-area h1, .tiptap.editor-area h2, .tiptap.editor-area h3, .tiptap.editor-area h4, .tiptap.editor-area h5, .tiptap.editor-area h6')[index];
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const textarea = document.querySelector<HTMLTextAreaElement>('textarea.editor-area');
+    if (!textarea) return;
+    textarea.focus();
+    textarea.setSelectionRange(heading.offset, heading.offset);
+    const line = content.slice(0, heading.offset).split('\n').length - 1;
+    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 24;
+    textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
+  };
 
   const handleOpenFile = async () => {
     const result = await openFile();
@@ -64,7 +83,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         )}
       >
         <div className="flex items-center justify-between px-4 h-10 shrink-0">
-          <span className="text-xs font-medium text-[var(--text-secondary)] tracking-wide">文件</span>
+          <div className="flex items-center gap-3 text-xs font-medium">
+            <button onClick={() => setSection('files')} className={section === 'files' ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}>文件</button>
+            {currentFile && <button onClick={() => setSection('outline')} className={section === 'outline' ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}>大纲</button>}
+          </div>
           <button
             onClick={onToggle}
             className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--border-subtle)] text-[var(--text-muted)]"
@@ -73,6 +95,20 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </button>
         </div>
 
+        {section === 'outline' && currentFile ? (
+          <div className="flex-1 overflow-y-auto px-2 py-2">
+            {headings.length === 0 ? (
+              <p className="px-3 py-3 text-xs text-[var(--text-muted)]">添加 Markdown 标题后会在此显示大纲</p>
+            ) : headings.map((heading, index) => (
+              <button key={`${heading.offset}-${index}`} onClick={() => jumpToHeading(heading, index)}
+                title={heading.text}
+                style={{ paddingLeft: `${8 + (heading.level - 1) * 12}px` }}
+                className="w-full flex items-center gap-2 py-1.5 pr-2 rounded-lg text-left text-xs text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]">
+                <ListTree size={12} className="shrink-0" /><span className="truncate">{heading.text}</span>
+              </button>
+            ))}
+          </div>
+        ) : <>
         <div className="px-3 py-2 space-y-1">
           <SidebarButton icon={<FileText size={16} />} label="新建文档" onClick={handleNewFile} />
           <SidebarButton icon={<FolderOpen size={16} />} label="打开文件..." onClick={handleOpenFile} />
@@ -96,6 +132,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </div>
           </div>
         )}
+        <div className="flex-1" />
+        </>}
 
         <div className="px-2 py-2 border-t border-[var(--border-subtle)] shrink-0">
           <div className="flex items-center gap-0.5 p-0.5 bg-[var(--border-subtle)] rounded-lg">
