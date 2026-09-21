@@ -14,11 +14,13 @@ import { isTauri } from '../../lib/env';
 import { confirmDiscardChanges } from '../../lib/confirmDiscard';
 import { openFileByPath } from '../../lib/fileOps';
 import { FindReplace } from '../editor/FindReplace';
+import type { Editor } from '@tiptap/react';
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [findOpen, setFindOpen] = useState(false);
   const [replaceOpen, setReplaceOpen] = useState(false);
+  const [richEditor, setRichEditor] = useState<Editor | null>(null);
   const { currentFile, setCurrentFile, addRecentFile } = useFileStore();
   const { viewMode, content, isModified, markSaved } = useEditorStore();
 
@@ -82,6 +84,12 @@ export function AppLayout() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave, handleSaveAs, currentFile, findOpen]);
+
+  useEffect(() => {
+    const openFind = () => { setFindOpen(true); setReplaceOpen(false); };
+    window.addEventListener('nextmd:find', openFind);
+    return () => window.removeEventListener('nextmd:find', openFind);
+  }, []);
 
   // Unsaved changes warning
   useEffect(() => {
@@ -168,14 +176,14 @@ export function AppLayout() {
 
         {/* Editor area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <FindReplace open={findOpen} replaceOpen={replaceOpen}
+          <FindReplace open={findOpen} replaceOpen={replaceOpen} editor={richEditor}
             onOpen={(replace) => { setFindOpen(true); setReplaceOpen(replace); }}
             onClose={() => setFindOpen(false)} />
           <div className="flex-1 flex overflow-hidden">
           {/* WYSIWYG or Source */}
           {(viewMode === 'wysiwyg' || viewMode === 'source') && (
             <div className="flex-1 overflow-hidden">
-              <MdEditor mode={viewMode} />
+              <MdEditor mode={viewMode} onEditorReady={setRichEditor} />
             </div>
           )}
 

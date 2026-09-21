@@ -20,9 +20,10 @@ export const EditorContext = createContext<Editor | null>(null);
 
 interface MdEditorProps {
   mode: ViewMode;
+  onEditorReady?: (editor: Editor | null) => void;
 }
 
-export function MdEditor({ mode }: MdEditorProps) {
+export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   const { content, setContent, focusMode, typewriterMode } = useEditorStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const wysiwygScrollRef = useRef<HTMLDivElement>(null);
@@ -51,6 +52,12 @@ export function MdEditor({ mode }: MdEditorProps) {
       setContent(md);
     },
   });
+
+  useEffect(() => {
+    if (mode !== 'wysiwyg' || !editor || !onEditorReady) return;
+    onEditorReady(editor);
+    return () => onEditorReady(null);
+  }, [editor, mode, onEditorReady]);
 
   // Sync editor when content changes externally (e.g. file load or drop)
   const lastContentRef = useRef(content);

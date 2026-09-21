@@ -1,4 +1,4 @@
-import { Eye, Braces, Columns2, Focus, AlignCenterVertical, Download } from 'lucide-react';
+import { Eye, Braces, Columns2, Focus, AlignCenterVertical, Download, Search } from 'lucide-react';
 import { useFileStore } from '../../stores/fileStore';
 import { useToastStore } from '../../stores/toastStore';
 import { exportHtml } from '../../lib/exportHtml';
@@ -46,6 +46,10 @@ export function StatusBar() {
         ))}
       </div>
       <div className="flex items-center gap-3">
+        {currentFile && <button onClick={() => window.dispatchEvent(new Event('nextmd:find'))}
+          title="查找 (Ctrl+F)" aria-label="查找" className="rounded px-1 py-0.5 hover:text-[var(--text-primary)]">
+          <Search size={12} />
+        </button>}
         {currentFile && <button onClick={handleExportHtml} title="导出 HTML" aria-label="导出 HTML"
           className="flex items-center gap-1 rounded px-1 py-0.5 hover:text-[var(--text-primary)]">
           <Download size={12} /><span>HTML</span>
