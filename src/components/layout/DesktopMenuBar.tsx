@@ -3,6 +3,7 @@ import { closeDocument, newDocument, openDocument, saveDocument } from '../../li
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { useThemeStore, type ThemeMode } from '../../stores/themeStore';
 import { useToastStore } from '../../stores/toastStore';
+import type { EditorCommand } from '../../lib/editorCommands';
 
 interface MenuItem {
   label?: string;
@@ -22,7 +23,6 @@ export function DesktopMenuBar() {
   const rootRef = useRef<HTMLDivElement>(null);
   const setViewMode = useEditorStore((state) => state.setViewMode);
   const viewMode = useEditorStore((state) => state.viewMode);
-  const insertMarkdown = useEditorStore((state) => state.insertMarkdown);
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
 
@@ -37,7 +37,10 @@ export function DesktopMenuBar() {
   const find = (replace = false) => window.dispatchEvent(new CustomEvent('nextmd:find', { detail: { replace } }));
   const viewItem = (label: string, mode: ViewMode): MenuItem => ({ label, checked: viewMode === mode, action: () => setViewMode(mode) });
   const themeItem = (label: string, mode: ThemeMode): MenuItem => ({ label, checked: theme === mode, action: () => setTheme(mode) });
-  const format = (label: string, prefix: string, suffix = prefix): MenuItem => ({ label, action: () => insertMarkdown?.(prefix, suffix) });
+  const format = (label: string, command: EditorCommand, prefix: string, suffix = prefix): MenuItem => ({
+    label,
+    action: () => window.dispatchEvent(new CustomEvent('nextmd:editor-command', { detail: { command, prefix, suffix } })),
+  });
   const menus: Menu[] = [
     { label: <>文件(<u>F</u>)</>, items: [
       { label: '新建', shortcut: 'Ctrl+N', action: () => { newDocument(); } },
@@ -53,12 +56,12 @@ export function DesktopMenuBar() {
       { label: '查找和替换', shortcut: 'Ctrl+H', action: () => find(true) },
     ] },
     { label: <>段落(<u>P</u>)</>, items: [
-      format('一级标题', '# ', ''), format('二级标题', '## ', ''), format('三级标题', '### ', ''),
-      { separator: true }, format('引用', '> ', ''), format('无序列表', '- ', ''), format('有序列表', '1. ', ''),
+      format('一级标题', 'h1', '# ', ''), format('二级标题', 'h2', '## ', ''), format('三级标题', 'h3', '### ', ''),
+      { separator: true }, format('引用', 'quote', '> ', ''), format('无序列表', 'bullet', '- ', ''), format('有序列表', 'ordered', '1. ', ''),
     ] },
     { label: <>格式(<u>O</u>)</>, items: [
-      format('粗体', '**'), format('斜体', '*'), format('删除线', '~~'), format('行内代码', '`'),
-      { separator: true }, format('链接', '[', '](https://)'),
+      format('粗体', 'bold', '**'), format('斜体', 'italic', '*'), format('删除线', 'strike', '~~'), format('行内代码', 'code', '`'),
+      { separator: true }, format('链接', 'link', '[', '](https://)'),
     ] },
     { label: <>视图(<u>V</u>)</>, items: [
       viewItem('所见即所得', 'wysiwyg'), viewItem('源码模式', 'source'), viewItem('分栏预览', 'split'),

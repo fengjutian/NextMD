@@ -31,7 +31,7 @@ export function AppLayout() {
   useDocumentLifecycle({ open: openFind, close: closeFind });
 
   useEffect(() => {
-    const handler = () => openFind(false);
+    const handler = (event: Event) => openFind(Boolean((event as CustomEvent<{ replace?: boolean }>).detail?.replace));
     window.addEventListener('nextmd:find', handler);
     return () => window.removeEventListener('nextmd:find', handler);
   }, [openFind]);

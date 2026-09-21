@@ -19,6 +19,7 @@ import { EditorContext } from './EditorContext';
 import { SearchHighlight } from '../../lib/searchHighlight';
 import { SourceEditor, type SourceEditorHandle } from './SourceEditor';
 import { MarkdownCodeBlock } from './MarkdownCodeBlock';
+import { insertMarkdownSyntax, runEditorCommand, type EditorCommand } from '../../lib/editorCommands';
 
 interface MdEditorProps {
   mode: ViewMode;
@@ -82,6 +83,16 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
     onEditorReady(editor);
     return () => onEditorReady(null);
   }, [editor, mode, onEditorReady]);
+
+  useEffect(() => {
+    const runMenuCommand = (event: Event) => {
+      const detail = (event as CustomEvent<{ command: EditorCommand; prefix: string; suffix: string }>).detail;
+      if (mode === 'wysiwyg' && editor) runEditorCommand(editor, detail.command);
+      else insertMarkdownSyntax(sourceEditorRef.current, useEditorStore.getState().content, detail.prefix, detail.suffix, setContent);
+    };
+    window.addEventListener('nextmd:editor-command', runMenuCommand);
+    return () => window.removeEventListener('nextmd:editor-command', runMenuCommand);
+  }, [editor, mode, setContent]);
 
   // Sync editor when content changes externally (e.g. file load or drop)
   const lastContentRef = useRef(content);
