@@ -35,7 +35,7 @@ export function useAI() {
     state.setGenerating(true);
 
     // Check API key before calling
-    if (state.provider !== 'mock' && !state.apiKey.trim()) {
+    if (!state.apiKey.trim()) {
       state.addMessage(convId, {
         role: 'assistant',
         content: '⚠️ 尚未配置 API Key\n\n请点击工具栏齿轮图标 ⚙️ → 选择服务商 → 输入 API Key → 测试连接。\n\nDeepSeek API Key 可在 [platform.deepseek.com](https://platform.deepseek.com/api_keys) 免费获取。',

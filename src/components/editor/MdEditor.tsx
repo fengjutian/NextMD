@@ -75,6 +75,11 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
         setContent(nextContent);
       }, 60);
     },
+    onCreate: ({ editor }) => {
+      if (!useEditorStore.getState().isModified) {
+        useEditorStore.getState().setSavedBaseline(editor.getMarkdown());
+      }
+    },
   });
 
   useEffect(() => {
@@ -120,6 +125,7 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
   useEffect(() => {
     if (editor && content !== lastContentRef.current && mode === 'wysiwyg') {
       if (editor.getMarkdown() !== content) {
+        const loadingSavedContent = !useEditorStore.getState().isModified;
         if (updateTimerRef.current) {
           window.clearTimeout(updateTimerRef.current);
           updateTimerRef.current = null;
@@ -128,6 +134,9 @@ export function MdEditor({ mode, onEditorReady }: MdEditorProps) {
         syncingRef.current = true;
         try {
           editor.commands.setContent(content, { contentType: 'markdown', emitUpdate: false });
+          if (loadingSavedContent) {
+            useEditorStore.getState().setSavedBaseline(editor.getMarkdown());
+          }
         } finally {
           syncingRef.current = false;
         }

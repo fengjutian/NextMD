@@ -1,7 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AIProvider = 'openai' | 'deepseek' | 'mock';
+export type AIProvider = 'openai' | 'deepseek' | 'minimax' | 'qwen' | 'kimi';
+
+export const AI_PROVIDER_DEFAULTS: Record<AIProvider, { baseUrl: string; model: string }> = {
+  deepseek: { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-v4-flash' },
+  openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-5.4-mini' },
+  minimax: { baseUrl: 'https://api.minimaxi.com/v1', model: 'MiniMax-M2.5' },
+  qwen: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen3.8-flash' },
+  kimi: { baseUrl: 'https://api.moonshot.cn/v1', model: 'kimi-k2.5' },
+};
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -53,7 +61,7 @@ export const useAIStore = create<AIState>()(
       isGenerating: false,
       isPanelOpen: false,
 
-      setProvider: (provider) => set({ provider }),
+      setProvider: (provider) => set({ provider, ...AI_PROVIDER_DEFAULTS[provider] }),
       setApiKey: (apiKey) => set({ apiKey }),
       setModel: (model) => set({ model }),
       setTemperature: (temperature) => set({ temperature }),
@@ -105,6 +113,13 @@ export const useAIStore = create<AIState>()(
         baseUrl: state.baseUrl,
         conversations: state.conversations,
       }),
+      merge: (persisted, current) => {
+        const saved = persisted as Omit<Partial<AIState>, 'provider'> & { provider?: string };
+        if (saved.provider === 'mock') {
+          return { ...current, ...saved, provider: 'deepseek', ...AI_PROVIDER_DEFAULTS.deepseek };
+        }
+        return { ...current, ...saved } as AIState;
+      },
     }
   )
 );

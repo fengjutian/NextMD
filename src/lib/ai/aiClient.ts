@@ -1,6 +1,5 @@
 import type { IAIClient } from './types';
 import { OpenAIClient } from './providers/openai';
-import { MockClient } from './providers/mock';
 import { useAIStore } from '../../stores/aiStore';
 import type { AIProvider } from '../../stores/aiStore';
 
@@ -11,10 +10,11 @@ export function createAIClient(provider: AIProvider, apiKey: string, baseUrl?: s
   switch (provider) {
     case 'openai':
     case 'deepseek':
-      return new OpenAIClient(apiKey, baseUrl);
-    case 'mock':
+    case 'minimax':
+    case 'qwen':
+    case 'kimi':
     default:
-      return new MockClient();
+      return new OpenAIClient(apiKey, baseUrl);
   }
 }
 

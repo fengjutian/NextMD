@@ -5,10 +5,12 @@ import { useAIStore, type AIProvider } from '../../stores/aiStore';
 import { createAIClient } from '../../lib/ai/aiClient';
 import { cn } from '../../lib/utils';
 
-const PROVIDERS: { value: AIProvider; label: string; help: string }[] = [
-  { value: 'deepseek', label: 'DeepSeek', help: 'DeepSeek 官方 API' },
-  { value: 'openai', label: 'OpenAI / 兼容', help: '支持 OpenAI 协议的服务' },
-  { value: 'mock', label: 'Mock（测试）', help: '无需密钥的本地模拟响应' },
+const PROVIDERS: { value: AIProvider; label: string }[] = [
+  { value: 'deepseek', label: 'DeepSeek' },
+  { value: 'openai', label: 'OpenAI / 兼容' },
+  { value: 'minimax', label: 'MiniMax' },
+  { value: 'qwen', label: 'Qwen' },
+  { value: 'kimi', label: 'Kimi' },
 ];
 
 export function AISettings({ triggerClass }: { triggerClass?: string }) {
@@ -23,7 +25,6 @@ export function AISettings({ triggerClass }: { triggerClass?: string }) {
   };
 
   const testConnection = async () => {
-    if (store.provider === 'mock') return setResult({ ok: true, msg: 'Mock 模式无需测试连接' });
     setTesting(true);
     setResult(null);
     try {
@@ -81,7 +82,6 @@ export function AISettings({ triggerClass }: { triggerClass?: string }) {
                       <span className={cn('mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', active ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-card)] text-[var(--text-muted)]')}><Cpu size={14} /></span>
                       <span className="min-w-0 flex-1">
                         <span className={cn('block text-sm font-medium', active ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]')}>{provider.label}</span>
-                        <span className="mt-0.5 block text-[11px] leading-4 text-[var(--text-muted)]">{provider.help}</span>
                       </span>
                       {active && <Check className="mt-1 shrink-0 text-[var(--accent)]" size={14} />}
                     </button>
@@ -94,14 +94,14 @@ export function AISettings({ triggerClass }: { triggerClass?: string }) {
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">连接配置</h3>
               <p className="mt-1 text-xs text-[var(--text-muted)]">配置会保存在当前设备上。</p>
               <div className="mt-5 space-y-5">
-                {store.provider !== 'mock' && <>
+                <>
                   <Field label="API 端点" icon={<Server size={14} />} hint="服务商提供的兼容接口地址">
                     <input type="url" value={store.baseUrl} onChange={(e) => store.setBaseUrl(e.target.value)} placeholder="https://api.example.com/v1" className="settings-input" />
                   </Field>
                   <Field label="API Key" icon={<KeyRound size={14} />} hint="密钥仅用于向所选服务发起请求">
                     <input type="password" value={store.apiKey} onChange={(e) => store.setApiKey(e.target.value)} placeholder="sk-..." autoComplete="off" className="settings-input" />
                   </Field>
-                </>}
+                </>
                 <Field label="模型" icon={<Cpu size={14} />} hint="填写服务商支持的准确模型名称">
                   <input type="text" value={store.model} onChange={(e) => store.setModel(e.target.value)} placeholder="deepseek-chat" className="settings-input" />
                 </Field>
@@ -118,7 +118,7 @@ export function AISettings({ triggerClass }: { triggerClass?: string }) {
           <footer className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-t border-[var(--border-subtle)] px-6 py-3">
             <div className="min-w-0 flex-1">{result && <p className={cn('truncate text-xs', result.ok ? 'text-green-600' : 'text-red-500')} title={result.msg}>{result.ok ? '连接正常：' : '连接失败：'}{result.msg}</p>}</div>
             <div className="flex shrink-0 items-center gap-2">
-              {store.provider !== 'mock' && <button onClick={testConnection} disabled={testing} className="flex h-9 items-center gap-2 rounded-lg border border-[var(--border-default)] px-4 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] disabled:opacity-50"><Zap size={14} />{testing ? '正在测试…' : '测试连接'}</button>}
+              <button onClick={testConnection} disabled={testing} className="flex h-9 items-center gap-2 rounded-lg border border-[var(--border-default)] px-4 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] disabled:opacity-50"><Zap size={14} />{testing ? '正在测试…' : '测试连接'}</button>
               <Dialog.Close asChild><button className="h-9 rounded-lg bg-[var(--accent)] px-5 text-xs font-medium text-white hover:opacity-90">完成</button></Dialog.Close>
             </div>
           </footer>

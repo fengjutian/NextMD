@@ -4,6 +4,7 @@ export type ViewMode = 'wysiwyg' | 'source' | 'split';
 
 interface EditorState {
   content: string;
+  savedContent: string;
   contentRevision: number;
   viewMode: ViewMode;
   isModified: boolean;
@@ -17,6 +18,7 @@ interface EditorState {
   setViewMode: (mode: ViewMode) => void;
   getCurrentContent: () => string;
   registerContentReader: (reader: (() => string) | null) => void;
+  setSavedBaseline: (content: string) => void;
   markSaved: () => void;
   toggleFocusMode: () => void;
   toggleTypewriterMode: () => void;
@@ -25,6 +27,7 @@ interface EditorState {
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   content: '',
+  savedContent: '',
   contentRevision: 0,
   viewMode: 'wysiwyg',
   isModified: false,
@@ -33,18 +36,23 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   contentReader: null,
   insertMarkdown: null,
 
-  setContent: (content, markModified = true) => set((state) => ({
-    content,
-    isModified: markModified,
-    contentRevision: state.contentRevision + 1,
-  })),
+  setContent: (content, markModified) => set((state) => {
+    const savedContent = markModified === false ? content : state.savedContent;
+    return {
+      content,
+      savedContent,
+      isModified: markModified ?? content !== savedContent,
+      contentRevision: state.contentRevision + 1,
+    };
+  }),
   setViewMode: (viewMode) => set((state) => ({
     viewMode,
     content: state.contentReader?.() ?? state.content,
   })),
   getCurrentContent: () => get().contentReader?.() ?? get().content,
   registerContentReader: (contentReader) => set({ contentReader }),
-  markSaved: () => set({ isModified: false }),
+  setSavedBaseline: (savedContent) => set({ savedContent, isModified: false }),
+  markSaved: () => set((state) => ({ savedContent: state.getCurrentContent(), isModified: false })),
   toggleFocusMode: () => set((state) => ({ focusMode: !state.focusMode })),
   toggleTypewriterMode: () => set((state) => ({ typewriterMode: !state.typewriterMode })),
   registerInsertMarkdown: (fn) => set({ insertMarkdown: fn }),

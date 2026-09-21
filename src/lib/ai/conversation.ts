@@ -76,7 +76,7 @@ export async function runAction(
   store.addMessage(convId, { role: 'user', content: `${prefix}\n\n${text}` });
   store.setGenerating(true);
 
-  if (store.provider !== 'mock' && !store.apiKey.trim()) {
+  if (!store.apiKey.trim()) {
     store.addMessage(convId, {
       role: 'assistant',
       content: '⚠️ 尚未配置 API Key\n\n请点击工具栏齿轮图标 ⚙️ → 选择服务商 → 输入 API Key。',
