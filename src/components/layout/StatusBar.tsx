@@ -1,4 +1,7 @@
-import { Eye, Braces, Columns2, Focus, AlignCenterVertical } from 'lucide-react';
+import { Eye, Braces, Columns2, Focus, AlignCenterVertical, Download } from 'lucide-react';
+import { useFileStore } from '../../stores/fileStore';
+import { useToastStore } from '../../stores/toastStore';
+import { exportHtml } from '../../lib/exportHtml';
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { AISettings } from '../ai/AISettings';
 import { cn } from '../../lib/utils';
@@ -11,8 +14,19 @@ const MODES: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 
 export function StatusBar() {
   const { viewMode, setViewMode, isModified, content, focusMode, toggleFocusMode, typewriterMode, toggleTypewriterMode } = useEditorStore();
+  const currentFile = useFileStore((state) => state.currentFile);
+  const showToast = useToastStore((state) => state.show);
   const wordCount = content ? content.split(/\s+/).filter(Boolean).length : 0;
   const lineCount = content ? content.split('\n').length : 0;
+
+  const handleExportHtml = async () => {
+    if (!currentFile) return;
+    try {
+      if (await exportHtml(content, currentFile.name)) showToast('success', 'HTML 导出完成');
+    } catch (error) {
+      showToast('error', `HTML 导出失败：${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between h-7 px-4 text-[11px] text-[var(--text-muted)] border-t border-[var(--border-subtle)] glass shrink-0">
@@ -32,6 +46,10 @@ export function StatusBar() {
         ))}
       </div>
       <div className="flex items-center gap-3">
+        {currentFile && <button onClick={handleExportHtml} title="导出 HTML" aria-label="导出 HTML"
+          className="flex items-center gap-1 rounded px-1 py-0.5 hover:text-[var(--text-primary)]">
+          <Download size={12} /><span>HTML</span>
+        </button>}
         <button onClick={toggleFocusMode} title="专注模式 (F8，仅所见即所得)" aria-label="切换专注模式"
           className={cn('flex items-center gap-1 rounded px-1 py-0.5', focusMode && viewMode === 'wysiwyg' ? 'text-[var(--accent)]' : 'hover:text-[var(--text-primary)]')}>
           <Focus size={12} /><span>专注</span>
