@@ -4,8 +4,7 @@ import { cn } from '../../lib/utils';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useThemeStore } from '../../stores/themeStore';
-import { openFile, openFileByPath } from '../../lib/fileOps';
-import { confirmDiscardChanges } from '../../lib/confirmDiscard';
+import { newDocument, openDocument, openRecentDocument } from '../../lib/documentActions';
 import { getOutline, type OutlineHeading } from '../../lib/outline';
 
 interface SidebarProps {
@@ -14,8 +13,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  const { currentFile, recentFiles, setCurrentFile, addRecentFile } = useFileStore();
-  const { content, viewMode, setContent } = useEditorStore();
+  const { currentFile, recentFiles } = useFileStore();
+  const { content, viewMode } = useEditorStore();
   const { theme, setTheme } = useThemeStore();
   const [section, setSection] = useState<'files' | 'outline'>('files');
   const headings = currentFile && section === 'outline' ? getOutline(content) : [];
@@ -33,34 +32,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const line = content.slice(0, heading.offset).split('\n').length - 1;
     const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 24;
     textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
-  };
-
-  const handleOpenFile = async () => {
-    const result = await openFile();
-    if (!result) return;
-    if (!confirmDiscardChanges()) return;
-    setCurrentFile({ name: result.name, path: result.path });
-    setContent(result.content, false);
-    addRecentFile(result.name, result.path);
-  };
-
-  const handleOpenRecentFile = async (filePath?: string) => {
-    const result = filePath ? await openFileByPath(filePath) : null;
-    if (result) {
-      if (!confirmDiscardChanges()) return;
-      setCurrentFile({ name: result.name, path: result.path });
-      setContent(result.content, false);
-      addRecentFile(result.name, result.path);
-      return;
-    }
-    handleOpenFile();
-  };
-
-  const handleNewFile = () => {
-    if (!confirmDiscardChanges()) return;
-    setCurrentFile({ name: '未命名.md' });
-    setContent('', false);
-    addRecentFile('未命名.md', undefined);
   };
 
   return (
@@ -110,8 +81,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </div>
         ) : <>
         <div className="px-3 py-2 space-y-1">
-          <SidebarButton icon={<FileText size={16} />} label="新建文档" onClick={handleNewFile} />
-          <SidebarButton icon={<FolderOpen size={16} />} label="打开文件..." onClick={handleOpenFile} />
+          <SidebarButton icon={<FileText size={16} />} label="新建文档" onClick={() => newDocument()} />
+          <SidebarButton icon={<FolderOpen size={16} />} label="打开文件..." onClick={() => { void openDocument(); }} />
         </div>
 
         {recentFiles.filter((f) => f.path).length > 0 && (
@@ -123,7 +94,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               {recentFiles.filter((f) => f.path).map((f) => (
                 <button
                   key={f.name + f.lastOpened}
-                  onClick={() => handleOpenRecentFile(f.path)}
+                  onClick={() => { void openRecentDocument(f.path); }}
                   className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors truncate"
                 >
                   <FileText size={14} className="inline mr-2 text-[var(--text-muted)]" />{f.name}

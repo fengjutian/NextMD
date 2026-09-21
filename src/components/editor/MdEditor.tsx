@@ -1,4 +1,4 @@
-import { useEffect, useRef, createContext } from 'react';
+import { useEffect, useRef } from 'react';
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
@@ -15,8 +15,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { Toolbar } from './Toolbar';
 import { cn } from '../../lib/utils';
-
-export const EditorContext = createContext<Editor | null>(null);
+import { EditorContext } from './EditorContext';
 
 interface MdEditorProps {
   mode: ViewMode;

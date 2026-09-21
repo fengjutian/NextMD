@@ -2,41 +2,10 @@ import { FileText, FolderOpen, FilePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { useFileStore } from '../../stores/fileStore';
-import { useEditorStore } from '../../stores/editorStore';
-import { openFile, openFileByPath } from '../../lib/fileOps';
-import { confirmDiscardChanges } from '../../lib/confirmDiscard';
+import { newDocument, openDocument, openRecentDocument } from '../../lib/documentActions';
 
 export function WelcomeScreen() {
-  const { recentFiles, setCurrentFile, addRecentFile } = useFileStore();
-  const { setContent } = useEditorStore();
-
-  const handleNewFile = () => {
-    if (!confirmDiscardChanges()) return;
-    setCurrentFile({ name: '未命名.md' });
-    setContent('', false);
-    addRecentFile('未命名.md', undefined);
-  };
-
-  const handleOpenFile = async () => {
-    const result = await openFile();
-    if (!result) return;
-    if (!confirmDiscardChanges()) return;
-    setCurrentFile({ name: result.name, path: result.path });
-    setContent(result.content, false);
-    addRecentFile(result.name, result.path);
-  };
-
-  const handleOpenRecentFile = async (filePath?: string) => {
-    const result = filePath ? await openFileByPath(filePath) : null;
-    if (result) {
-      if (!confirmDiscardChanges()) return;
-      setCurrentFile({ name: result.name, path: result.path });
-      setContent(result.content, false);
-      addRecentFile(result.name, result.path);
-      return;
-    }
-    handleOpenFile();
-  };
+  const { recentFiles } = useFileStore();
 
   const templates = [
     { label: '空白文档', icon: <FilePlus size={18} />, content: '' },
@@ -57,13 +26,13 @@ export function WelcomeScreen() {
 
         <div className="flex items-center justify-center gap-4 mb-10">
           <button
-            onClick={handleNewFile}
+            onClick={() => newDocument()}
             className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[var(--text-primary)] text-white text-sm font-medium shadow-[var(--shadow-sm)] hover:opacity-90 transition-opacity"
           >
             <FileText size={16} />新建文档
           </button>
           <button
-            onClick={handleOpenFile}
+            onClick={() => { void openDocument(); }}
             className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[var(--bg-card)] text-[var(--text-primary)] text-sm font-medium border border-[var(--border-default)] shadow-[var(--shadow-sm)] hover:bg-[var(--border-subtle)] transition-colors"
           >
             <FolderOpen size={16} />打开文件
@@ -77,7 +46,7 @@ export function WelcomeScreen() {
               {recentFiles.filter((f) => f.path).slice(0, 5).map((f) => (
                 <button
                   key={f.name + f.lastOpened}
-                  onClick={() => handleOpenRecentFile(f.path)}
+                  onClick={() => { void openRecentDocument(f.path); }}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors flex items-center gap-2"
                 >
                   <FileText size={14} className="text-[var(--text-muted)] shrink-0" />
@@ -96,10 +65,7 @@ export function WelcomeScreen() {
               <button
                 key={t.label}
                 onClick={() => {
-                  if (!confirmDiscardChanges()) return;
-                  setCurrentFile({ name: '未命名.md' });
-                  setContent(t.content, false);
-                  addRecentFile('未命名.md', undefined);
+                  newDocument(t.content);
                 }}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
               >

@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { ChevronDown, ChevronUp, Replace, Search, X } from 'lucide-react';
 import { useEditorStore } from '../../stores/editorStore';
-
-interface Match { from: number; to: number }
+import { findMatches, findEditorMatches } from '../../lib/editorSearch';
 
 interface Props {
   open: boolean;
@@ -11,39 +10,6 @@ interface Props {
   editor: Editor | null;
   onOpen: (replace: boolean) => void;
   onClose: () => void;
-}
-
-function findMatches(content: string, query: string, positions?: number[]): Match[] {
-  if (!query) return [];
-  const matches: Match[] = [];
-  const haystack = content.toLowerCase();
-  const needle = query.toLowerCase();
-  for (let from = 0; from < content.length;) {
-    const index = haystack.indexOf(needle, from);
-    if (index < 0) break;
-    const start = positions ? positions[index] : index;
-    const end = positions ? positions[index + query.length - 1] + 1 : index + query.length;
-    if (start >= 0 && end > start) matches.push({ from: start, to: end });
-    from = index + Math.max(query.length, 1);
-  }
-  return matches;
-}
-
-function visibleText(editor: Editor): { text: string; positions: number[] } {
-  let text = '';
-  const positions: number[] = [];
-  let previousEnd = -1;
-  editor.state.doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return;
-    if (previousEnd >= 0 && pos > previousEnd) {
-      text += '\n';
-      positions.push(-1);
-    }
-    text += node.text;
-    for (let i = 0; i < node.text.length; i++) positions.push(pos + i);
-    previousEnd = pos + node.text.length;
-  });
-  return { text, positions };
 }
 
 export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Props) {
@@ -54,8 +20,7 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
   const inputRef = useRef<HTMLInputElement>(null);
   const matches = useMemo(() => {
     if (viewMode === 'wysiwyg' && editor) {
-      const visible = visibleText(editor);
-      return findMatches(visible.text, query, visible.positions);
+      return findEditorMatches(editor, query);
     }
     return findMatches(content, query);
   }, [content, query, viewMode, editor]);

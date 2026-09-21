@@ -9,7 +9,7 @@ import {
 import { BubbleMenu } from '@tiptap/react/menus';
 import { useEditorStore } from '../../stores/editorStore';
 import { useAIStore } from '../../stores/aiStore';
-import { EditorContext } from '../editor/MdEditor';
+import { EditorContext } from './EditorContext';
 import { cn } from '../../lib/utils';
 
 export function Toolbar() {

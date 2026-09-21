@@ -5,7 +5,7 @@ import { FollowUpSuggestions } from './FollowUpSuggestions';
 import { X, Plus, GripVertical } from 'lucide-react';
 import { useAIStore, type AIConversation } from '../../stores/aiStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { EditorContext } from '../editor/MdEditor';
+import { EditorContext } from '../editor/EditorContext';
 import { cn } from '../../lib/utils';
 import { useContext, useState, useCallback, useEffect, useRef } from 'react';
 

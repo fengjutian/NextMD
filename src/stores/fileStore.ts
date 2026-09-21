@@ -25,7 +25,7 @@ export const useFileStore = create<FileState>()(
       setCurrentFile: (file) => set({ currentFile: file }),
       addRecentFile: (name, path) =>
         set((state) => {
-          const filtered = state.recentFiles.filter((f) => f.name !== name);
+          const filtered = state.recentFiles.filter((f) => path ? f.path !== path : !(f.name === name && !f.path));
           return {
             recentFiles: [{ name, path, lastOpened: Date.now() }, ...filtered].slice(0, 10),
           };
