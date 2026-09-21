@@ -1,8 +1,8 @@
 import { useCallback, useRef } from 'react';
 import { useAIStore, type AIMessage, type AIConversation } from '../stores/aiStore';
 import { useEditorStore } from '../stores/editorStore';
-import { useToastStore } from '../stores/toastStore';
 import { getAIClient } from '../lib/ai/aiClient';
+import { getConvMessages, runAction, streamToLastMessage } from '../lib/ai/conversation';
 import {
   ASSISTANT_SYSTEM_PROMPT, REWRITE_SYSTEM_PROMPT,
   TRANSLATE_SYSTEM_PROMPT, SUMMARIZE_SYSTEM_PROMPT,
@@ -16,17 +16,19 @@ export function useAI() {
   const abortRef = useRef<(() => void) | null>(null);
 
   const ensureConversation = useCallback(() => {
-    let convId = store.activeConversationId;
+    const state = useAIStore.getState();
+    let convId = state.activeConversationId;
     if (!convId) {
-      convId = store.newConversation();
+      convId = state.newConversation();
     }
-    if (!store.isPanelOpen) {
-      store.togglePanel();
+    if (!state.isPanelOpen) {
+      state.togglePanel();
     }
     return convId;
-  }, [store]);
+  }, []);
 
   const sendMessage = useCallback(async (userMessage: string) => {
+    if (useAIStore.getState().isGenerating) return;
     const convId = ensureConversation();
     const state = useAIStore.getState();
     state.addMessage(convId, { role: 'user', content: userMessage });
@@ -93,41 +95,40 @@ export function useAI() {
     setContent(content ? content + '\n\n' + text : text);
   }, [content, setContent]);
 
-  const resendMessage = useCallback(async (msgContent: string) => {
+  const resendMessage = useCallback(async (index: number) => {
     const state = useAIStore.getState();
-    const convId = store.activeConversationId;
+    if (state.isGenerating) return;
+    const convId = state.activeConversationId;
     if (!convId) return;
     const conv = state.conversations.find((c: AIConversation) => c.id === convId);
-    if (conv) {
-      const index = conv.messages.findIndex((m) => m.role === 'user' && m.content === msgContent);
-      if (index < 0) return;
+    if (conv && conv.messages[index]?.role === 'user') {
+      const msgContent = conv.messages[index].content;
       const msgs = conv.messages.slice(0, index);
       useAIStore.setState({
         conversations: state.conversations.map((c) =>
           c.id === convId ? { ...c, messages: msgs } : c
         ),
       });
+      await sendMessage(msgContent);
     }
-    await sendMessage(msgContent);
-  }, [store.activeConversationId, sendMessage]);
+  }, [sendMessage]);
 
-  const editMessage = useCallback(async (oldContent: string, newContent: string) => {
+  const editMessage = useCallback(async (index: number, newContent: string) => {
     const state = useAIStore.getState();
-    const convId = store.activeConversationId;
+    if (state.isGenerating) return;
+    const convId = state.activeConversationId;
     if (!convId) return;
     const conv = state.conversations.find((c: AIConversation) => c.id === convId);
-    if (conv) {
-      const index = conv.messages.findIndex((m) => m.role === 'user' && m.content === oldContent);
-      if (index < 0) return;
+    if (conv && conv.messages[index]?.role === 'user') {
       const msgs = conv.messages.slice(0, index);
       useAIStore.setState({
         conversations: state.conversations.map((c) =>
           c.id === convId ? { ...c, messages: msgs } : c
         ),
       });
+      await sendMessage(newContent);
     }
-    await sendMessage(newContent);
-  }, [store.activeConversationId, sendMessage]);
+  }, [sendMessage]);
 
   return {
     ...store,
@@ -135,92 +136,4 @@ export function useAI() {
     stopGeneration, rewrite, translate, summarize, continueWriting,
     insertToEditor, resendMessage, editMessage,
   };
-}
-
-async function runAction(
-  text: string,
-  systemPrompt: string,
-  prefix: string,
-  convId: string,
-  abortRef: React.MutableRefObject<(() => void) | null>
-) {
-  const store = useAIStore.getState();
-  store.addMessage(convId, { role: 'user', content: `${prefix}\n\n${text}` });
-  store.setGenerating(true);
-
-  // Check API key
-  if (store.provider !== 'mock' && !store.apiKey.trim()) {
-    store.addMessage(convId, {
-      role: 'assistant',
-      content: '⚠️ 尚未配置 API Key\n\n请点击工具栏齿轮图标 ⚙️ → 选择服务商 → 输入 API Key。',
-    });
-    store.setGenerating(false);
-    return;
-  }
-
-  store.addMessage(convId, { role: 'assistant', content: '' });
-
-  const client = getAIClient();
-  abortRef.current = () => client.abort();
-
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: text },
-  ];
-
-  try {
-    await streamToLastMessage(client, messages, convId);
-  } finally {
-    store.setGenerating(false);
-    abortRef.current = null;
-  }
-}
-
-async function streamToLastMessage(
-  client: ReturnType<typeof getAIClient>,
-  messages: AIMessage[],
-  convId: string
-) {
-  const { model, temperature } = useAIStore.getState();
-  const toast = useToastStore.getState();
-  let fullText = '';
-  try {
-    for await (const chunk of client.chat(messages, { model, temperature })) {
-      if (chunk.type === 'content') {
-        fullText += chunk.text;
-        updateLastMsg(convId, fullText);
-      } else if (chunk.type === 'done') {
-        updateLastMsg(convId, chunk.fullText);
-      } else if (chunk.type === 'error') {
-        updateLastMsg(convId, `❌ ${chunk.message}`);
-        toast.show('error', chunk.message);
-      }
-    }
-  } catch (err: unknown) {
-    const msg = `❌ 错误: ${err instanceof Error ? err.message : String(err)}`;
-    updateLastMsg(convId, msg);
-    toast.show('error', msg.replace('❌ ', ''));
-  }
-}
-
-function getConvMessages(convId: string): AIMessage[] {
-  const store = useAIStore.getState();
-  const conv = store.conversations.find((c: AIConversation) => c.id === convId);
-  return conv?.messages.filter((m: AIMessage) => m.content !== '') || [];
-}
-
-function updateLastMsg(convId: string, content: string) {
-  useAIStore.setState((state) => ({
-    conversations: state.conversations.map((c: AIConversation) => {
-      if (c.id !== convId) return c;
-      const msgs = [...c.messages];
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === 'assistant') {
-          msgs[i] = { ...msgs[i], content };
-          break;
-        }
-      }
-      return { ...c, messages: msgs };
-    }),
-  }));
 }

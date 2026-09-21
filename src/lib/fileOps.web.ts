@@ -15,7 +15,7 @@ export function openFile(): Promise<FileHandle | null> {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.md,.markdown,.txt';
+    input.accept = '.md,.markdown,.mdx,.txt';
 
     let settled = false;
     const done = (result: FileHandle | null) => {

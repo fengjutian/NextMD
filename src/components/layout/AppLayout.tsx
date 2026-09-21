@@ -59,7 +59,7 @@ export function AppLayout() {
                 )}
               </div>
             </div>
-            <AIPanel />
+            <AIPanel editor={richEditor} />
           </>
         )}
       </div>

@@ -1,7 +1,6 @@
 import { Eye, Braces, Columns2, Focus, AlignCenterVertical, Download, Search } from 'lucide-react';
 import { useFileStore } from '../../stores/fileStore';
 import { useToastStore } from '../../stores/toastStore';
-import { exportHtml } from '../../lib/exportHtml';
 import { useEditorStore, type ViewMode } from '../../stores/editorStore';
 import { AISettings } from '../ai/AISettings';
 import { cn } from '../../lib/utils';
@@ -22,6 +21,7 @@ export function StatusBar() {
   const handleExportHtml = async () => {
     if (!currentFile) return;
     try {
+      const { exportHtml } = await import('../../lib/exportHtml');
       if (await exportHtml(content, currentFile.name)) showToast('success', 'HTML 导出完成');
     } catch (error) {
       showToast('error', `HTML 导出失败：${error instanceof Error ? error.message : String(error)}`);

@@ -5,11 +5,11 @@ import { FollowUpSuggestions } from './FollowUpSuggestions';
 import { X, Plus, GripVertical } from 'lucide-react';
 import { useAIStore, type AIConversation } from '../../stores/aiStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { EditorContext } from '../editor/EditorContext';
+import type { Editor } from '@tiptap/react';
 import { cn } from '../../lib/utils';
-import { useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
-export function AIPanel() {
+export function AIPanel({ editor }: { editor: Editor | null }) {
   const {
     isPanelOpen, togglePanel,
     conversations, activeConversationId,
@@ -21,7 +21,6 @@ export function AIPanel() {
 
   const activeConv = conversations.find((c: AIConversation) => c.id === activeConversationId);
   const messages = activeConv?.messages || [];
-  const editor = useContext(EditorContext);
   const { content } = useEditorStore();
 
   // Get selected text from TipTap editor (works even after focus moves to button)
@@ -138,7 +137,7 @@ export function AIPanel() {
         isGenerating={isGenerating}
         onInsert={insertToEditor}
         onResend={resendMessage}
-        onEdit={(old, text) => editMessage(old, text)}
+        onEdit={(index, text) => editMessage(index, text)}
       />
 
       {/* Follow-up suggestions */}

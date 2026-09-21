@@ -58,7 +58,7 @@ export function useDocumentLifecycle({ open, close }: FindControls): void {
       }).then((stop) => {
         if (cancelled) stop();
         else unlisten = stop;
-      });
+      }).catch((error: unknown) => console.error('文件拖入监听失败:', error));
       return () => { cancelled = true; unlisten?.(); };
     }
 

@@ -7,8 +7,8 @@ interface AIChatProps {
   messages: AIMessage[];
   isGenerating: boolean;
   onInsert: (text: string) => void;
-  onResend: (content: string) => void;
-  onEdit: (oldContent: string, newContent: string) => void;
+  onResend: (index: number) => void;
+  onEdit: (index: number, newContent: string) => void;
 }
 
 export function AIChat({ messages, isGenerating, onInsert, onResend, onEdit }: AIChatProps) {
@@ -24,7 +24,7 @@ export function AIChat({ messages, isGenerating, onInsert, onResend, onEdit }: A
     }
   }, [messages, isGenerating]);
 
-  const visibleMessages = messages.filter((m) => m.content);
+  const visibleMessages = messages.map((message, index) => ({ message, index })).filter(({ message }) => message.content);
 
   return (
     <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 editor-area">
@@ -36,13 +36,13 @@ export function AIChat({ messages, isGenerating, onInsert, onResend, onEdit }: A
         </div>
       )}
 
-      {visibleMessages.map((msg, i) => (
+      {visibleMessages.map(({ message: msg, index }) => (
         <ChatBubble
-          key={`${msg.role}-${i}-${msg.content.length}`}
+          key={`${msg.role}-${index}`}
           message={msg}
           onInsert={msg.role === 'assistant' ? () => onInsert(msg.content) : undefined}
-          onResend={msg.role === 'user' ? () => onResend(msg.content) : undefined}
-          onEdit={msg.role === 'user' ? (newContent) => onEdit(msg.content, newContent) : undefined}
+          onResend={msg.role === 'user' ? () => onResend(index) : undefined}
+          onEdit={msg.role === 'user' ? (newContent) => onEdit(index, newContent) : undefined}
         />
       ))}
 
