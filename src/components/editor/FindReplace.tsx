@@ -26,7 +26,7 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
     if (viewMode === 'wysiwyg' && editor) {
       return findEditorMatches(editor, query);
     }
-    return findMatches(content, query);
+    return findMatches(useEditorStore.getState().getCurrentContent(), query);
   }, [content, query, viewMode, editor]);
 
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
@@ -62,7 +62,8 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
     if (viewMode === 'wysiwyg' && editor) {
       editor.view.dispatch(editor.state.tr.insertText(replacement, match.from, match.to));
     } else {
-      setContent(content.slice(0, match.from) + replacement + content.slice(match.to));
+      const latest = useEditorStore.getState().getCurrentContent();
+      setContent(latest.slice(0, match.from) + replacement + latest.slice(match.to));
     }
     setActive(-1);
   };
@@ -76,7 +77,7 @@ export function FindReplace({ open, replaceOpen, editor, onOpen, onClose }: Prop
       }
       editor.view.dispatch(transaction);
     } else {
-      let next = content;
+      let next = useEditorStore.getState().getCurrentContent();
       for (let i = matches.length - 1; i >= 0; i--) {
         next = next.slice(0, matches[i].from) + replacement + next.slice(matches[i].to);
       }

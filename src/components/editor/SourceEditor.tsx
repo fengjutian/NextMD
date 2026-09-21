@@ -43,7 +43,10 @@ export const SourceEditor = forwardRef<SourceEditorHandle, Props>(function Sourc
     selectRange: (from, to) => {
       const view = viewRef.current;
       if (!view) return;
-      view.dispatch({ selection: { anchor: from, head: to }, scrollIntoView: true });
+      const length = view.state.doc.length;
+      const anchor = Math.max(0, Math.min(from, length));
+      const head = Math.max(anchor, Math.min(to, length));
+      view.dispatch({ selection: { anchor, head }, scrollIntoView: true });
     },
     focus: () => viewRef.current?.focus(),
   });
