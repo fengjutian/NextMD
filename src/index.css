@@ -179,12 +179,13 @@ html, body, #root {
   min-height: 100%;
   outline: none;
   font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 15.5px;
+  line-height: 1.78;
   color: var(--text-primary);
   caret-color: var(--accent);
-  max-width: 780px;
+  max-width: 900px;
   margin: 0 auto;
+  padding: 12px 28px 64px;
 }
 
 /* Placeholder */
@@ -199,33 +200,35 @@ html, body, #root {
 
 /* Headings */
 .tiptap h1 {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   line-height: 1.25;
-  margin: 1.5em 0 0.5em;
+  margin: 1.7em 0 0.65em;
   letter-spacing: -0.02em;
 }
 .tiptap h2 {
-  font-size: 22px;
+  font-size: 23px;
   font-weight: 600;
   line-height: 1.3;
-  margin: 1.4em 0 0.4em;
+  margin: 1.8em 0 0.65em;
   letter-spacing: -0.01em;
+  padding-bottom: 0.28em;
+  border-bottom: 1px solid var(--border-subtle);
 }
 .tiptap h3 {
-  font-size: 18px;
+  font-size: 18.5px;
   font-weight: 600;
-  margin: 1.2em 0 0.3em;
+  margin: 1.55em 0 0.45em;
 }
 .tiptap h4 {
   font-size: 16px;
   font-weight: 600;
-  margin: 1em 0 0.2em;
+  margin: 1.35em 0 0.35em;
 }
 
 /* Paragraphs */
 .tiptap p {
-  margin: 0.5em 0;
+  margin: 0.62em 0;
 }
 
 /* Bold / Italic */
@@ -234,9 +237,10 @@ html, body, #root {
 
 /* Code */
 .tiptap code {
-  background: var(--border-subtle);
+  background: color-mix(in srgb, var(--border-subtle) 78%, var(--bg-card));
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  padding: 0.15em 0.4em;
+  padding: 0.1em 0.38em;
   font-family: var(--font-mono);
   font-size: 0.9em;
 }
@@ -250,6 +254,7 @@ html, body, #root {
 }
 .tiptap pre code {
   background: none;
+  border: none;
   padding: 0;
   font-size: 0.85em;
   line-height: 1.6;
@@ -287,11 +292,17 @@ html, body, #root {
 
 /* Blockquote */
 .tiptap blockquote {
-  border-left: 3px solid var(--accent);
-  padding-left: 1em;
-  margin: 1em 0;
-  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.75em 1em;
+  margin: 1.2em 0;
+  color: var(--text-primary);
+  background: var(--accent-muted);
 }
+
+.tiptap blockquote p:first-child { margin-top: 0; }
+.tiptap blockquote p:last-child { margin-bottom: 0; }
 
 /* Links */
 .tiptap a {
@@ -319,20 +330,29 @@ html, body, #root {
 .tiptap table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1em 0;
+  margin: 1.35em 0 1.6em;
+  font-size: 13.5px;
+  line-height: 1.55;
+  box-shadow: 0 1px 0 var(--border-subtle);
 }
 .tiptap th, .tiptap td {
   border: 1px solid var(--border-default);
-  padding: 0.5em 0.8em;
+  padding: 0.72em 0.85em;
   text-align: left;
+  vertical-align: top;
 }
 .tiptap th {
-  background: var(--border-subtle);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--border-default) 70%, var(--bg-editor));
+  font-weight: 650;
+  white-space: nowrap;
 }
 .tiptap td {
-  font-size: 0.95em;
+  font-size: inherit;
 }
+.tiptap tbody tr:nth-child(even) { background: color-mix(in srgb, var(--border-subtle) 48%, transparent); }
+.tiptap tbody tr:hover { background: var(--accent-muted); }
+.tiptap th:first-child, .tiptap td:first-child { min-width: 92px; }
+
 
 /* Highlight */
 .tiptap mark {

@@ -47,5 +47,5 @@ export const MermaidDiagram = memo(function MermaidDiagram({ chart }: Props) {
     );
   }
   if (!svg) return <div className="my-4 min-h-24 animate-pulse rounded-xl bg-[var(--border-subtle)]" />;
-  return <div className="my-4 overflow-x-auto text-center [&>svg]:mx-auto [&>svg]:max-w-full" dangerouslySetInnerHTML={{ __html: svg }} />;
+  return <div className="my-6 overflow-x-auto rounded-xl py-2 text-center [&>svg]:mx-auto [&>svg]:max-h-[75vh] [&>svg]:max-w-full" dangerouslySetInnerHTML={{ __html: svg }} />;
 });
